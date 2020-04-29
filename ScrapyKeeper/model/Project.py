@@ -21,22 +21,3 @@ class Project(Base):
     project_alias = db.Column(db.String(100))        # 项目的备注
     category = db.Column(db.String(255))             # 分类
     is_msd = db.Column(db.SmallInteger)              # 是否是主从分布式爬虫 0 单机爬虫 1 分布式爬虫
-
-    @classmethod
-    def find_by_id(cls, project_id: int) -> "Project":
-        proj = cls.query.filter(cls.id == project_id).first()
-        return proj.to_dict() if proj is not None else None
-
-    @classmethod
-    def save(cls, project: dict) -> "Dict or None":
-        if 'id' in project:
-            proj = cls.query.filter(cls.id == project['id']).first()
-            if proj is None:
-                raise DataError('No Project where id %s' % project['id'], None, None)
-            else:
-                proj.set(project)
-        else:
-            new_one = cls()
-            new_one.set(project)
-            db.session.add(new_one)
-        db.session.commit()
