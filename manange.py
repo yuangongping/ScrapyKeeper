@@ -12,6 +12,7 @@ sys.path.append(os.getcwd())
 from ScrapyKeeper import app
 from ScrapyKeeper.model import db
 from ScrapyKeeper.model.ServerMachine import ServerMachine
+from ScrapyKeeper.model.Project import Project
 
 def create_db():
     db.init_app(app)

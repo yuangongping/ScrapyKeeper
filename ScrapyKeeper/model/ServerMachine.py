@@ -14,9 +14,3 @@ class ServerMachine(Base):
     status = db.Column(db.SmallInteger)
     is_master = db.Column(db.SmallInteger)
 
-    def to_dict(self):
-        return dict(
-            ip=self.ip,
-            status=self.status,
-            is_master=self.is_master
-        )

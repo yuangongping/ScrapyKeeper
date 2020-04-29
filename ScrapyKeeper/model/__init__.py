@@ -6,6 +6,8 @@
 # @Author  : Taoz
 # @contact : xie-hong-tao@qq.com
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import DateTime, Date, Numeric
+
 from ScrapyKeeper import app
 
 db = SQLAlchemy(app, session_options=dict(autocommit=False, autoflush=True))
@@ -27,3 +29,24 @@ class Base(db.Model):
     date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
     date_modified = db.Column(db.DateTime, default=db.func.current_timestamp(),
                               onupdate=db.func.current_timestamp())
+
+    def to_dict(self):
+        dic = {}
+        for column in self.__table__.columns:
+            value = getattr(self, column.name)
+            if isinstance(column.type, Date):
+                value = value.strftime('%Y-%m-%d')
+            elif isinstance(column.type, DateTime):
+                value = value.strftime('%Y-%m-%d %H:%M:%S')
+            elif isinstance(column.type, Numeric):
+                value = float(value)
+            dic[column.name] = value
+        return dic
+
+    def set(self, dic: dict):
+        columns = [col.name for col in self.__table__.columns]
+        for key, val in dic.items():
+            if key not in columns:
+                raise KeyError('%s has no column %s' % (self.__table__, key))
+            else:
+                setattr(self, key, val)
