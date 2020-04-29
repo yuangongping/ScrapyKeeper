@@ -9,4 +9,5 @@
 from ScrapyKeeper import restful_api
 
 def regist_router():
-    restful_api.add_resource('''Controller''', ''' Path ''')
+    # restful_api.add_resource('''Controller''', ''' Path ''')
+    pass

@@ -5,6 +5,9 @@
 # @Software: PyCharm
 # @Author  : Taoz
 # @contact : xie-hong-tao@qq.com
-SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:root@127.0.0.1:3306/scrapykeeper'
+
+# dev
+SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:root@localhost:3306/scrapykeeper'
+# SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:root@127.0.0.1:3306/scrapykeeper'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 SQLALCHEMY_POOL_RECYCLE = 30

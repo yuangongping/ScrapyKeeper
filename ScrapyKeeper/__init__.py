@@ -12,10 +12,12 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_login import LoginManager
 from flask_restful import Api
+from ScrapyKeeper import config
 
 app = Flask(__name__)
 restful_api = Api(app)
 cors = CORS(app, resources=r'/*', supports_credentials=True)
+app.config.from_object(config)
 app.config['JSON_AS_ASCII'] = False
 
 # Logging
@@ -26,15 +28,6 @@ handler = logging.StreamHandler()
 handler.setFormatter(formatter)
 app.logger.setLevel(app.config.get('LOG_LEVEL', "INFO"))
 app.logger.addHandler(handler)
-
-db = SQLAlchemy(app, session_options=dict(autocommit=False, autoflush=True))
-
-@app.teardown_request
-def teardown_request(exception):
-    if exception:
-        db.session.rollback()
-        db.session.remove()
-    db.session.remove()
 
 
 @app.route('/favicon.ico')

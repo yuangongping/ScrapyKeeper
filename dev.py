@@ -5,3 +5,10 @@
 # @Software: PyCharm
 # @Author  : Taoz
 # @contact : xie-hong-tao@qq.com
+import os
+import sys
+sys.path.append(os.getcwd())
+from ScrapyKeeper import app
+
+if __name__ == '__main__':
+    app.run()

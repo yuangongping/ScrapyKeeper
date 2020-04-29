@@ -9,8 +9,9 @@ import os
 import sys
 sys.path.append(os.getcwd())
 
-from ScrapyKeeper import app, db
-
+from ScrapyKeeper import app
+from ScrapyKeeper.model import db
+from ScrapyKeeper.model.ServerMachine import ServerMachine
 
 def create_db():
     db.init_app(app)
