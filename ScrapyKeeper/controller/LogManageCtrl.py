@@ -6,14 +6,20 @@ from ScrapyKeeper.service.LogManageSrv import LogManageSrv
 from ScrapyKeeper.utils import success_res
 
 
-class LogCountCtrl(Resource):
+class LogManageCtrl(Resource):
     def get(self):
+        '''
+        计算各项目的错误日志数, 用于提示哪些项目有错误日志, 错误日志数大于0的项目将有预警标识
+        :return:
+        '''
         data = LogManageSrv.log_count()
         return success_res(data)
 
-
-class LogMessagesCtrl(Resource):
-    def get(self):
+    def post(self):
+        '''
+        根据项目查找该项目的错误日志信息
+        :return:
+        '''
         parser = reqparse.RequestParser()
         parser.add_argument('project_name', required=True, type=str)
         parser.add_argument('page', type=int, default=1)
@@ -26,3 +32,17 @@ class LogMessagesCtrl(Resource):
             page_size=args.get("page_size"),
         )
         return success_res(data)
+
+    def delete(self):
+        '''
+        根据项目删除已经处理过得错误日志信息, 同时清除本地日志
+        :return:
+        '''
+        parser = reqparse.RequestParser()
+        parser.add_argument('project_name', required=True, type=str)
+        args = parser.parse_args(strict=True)
+
+        LogManageSrv.log_delete(
+            project_name=args.get("project_name")
+        )
+        return success_res()

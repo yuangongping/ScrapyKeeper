@@ -2,50 +2,64 @@
 # -*- coding:utf-8 -*-
 # Author:chenlincui
 from flask_restful import Resource, reqparse
-from ScrapyKeeper.service.ParamConfigSrv import ParamConfigSrv
+from ScrapyKeeper.service.ServerMachineSrv import ServerMachineSrv
 from ScrapyKeeper.utils import success_res
 
 
-class AddMachinesCtrl(Resource):
+class ServerMachineCtrl(Resource):
     def get(self):
-        data = ParamConfigSrv.list_machine()
+        '''
+        列出所有的服务器信息
+        :return:
+        '''
+        data = ServerMachineSrv.list()
         return success_res(data)
 
     def post(self):
+        '''
+        添加服务器
+        :return:
+        '''
         parser = reqparse.RequestParser()
-        parser.add_argument('ip', required=True, type=str)
-        parser.add_argument('is_master', type=str, required=True)
-        parser.add_argument('status', type=str, required=True)
+        parser.add_argument('url', required=True, type=str)
+        parser.add_argument('is_master', type=int, required=True)
+        parser.add_argument('status', type=int, required=True)
         args = parser.parse_args(strict=True)
 
-        data = ParamConfigSrv.add_machine(
-            ip=args.get("ip"),
+        data = ServerMachineSrv.add_machine(
+            url=args.get("url"),
             is_master=args.get("is_master"),
             status=args.get("status"),
         )
         return success_res(data)
 
     def delete(self):
+        '''
+        删除服务器
+        :return:
+        '''
         parser = reqparse.RequestParser()
-        parser.add_argument('id', required=True, type=int)
+        parser.add_argument('url', required=True, type=str)
         args = parser.parse_args(strict=True)
 
-        ParamConfigSrv.delete_machine(
-            id=args.get("id"),
+        ServerMachineSrv.delete_machine(
+            url=args.get("url"),
         )
         return success_res()
 
     def put(self):
+        '''
+        修改服务器信息
+        :return:
+        '''
         parser = reqparse.RequestParser()
-        parser.add_argument('id', required=True, type=str)
-        parser.add_argument('ip', required=True, type=str)
-        parser.add_argument('is_master', type=str, required=True)
-        parser.add_argument('status', type=str, required=True)
+        parser.add_argument('url', required=True, type=str)
+        parser.add_argument('is_master', type=int, required=True)
+        parser.add_argument('status', type=int, required=True)
         args = parser.parse_args(strict=True)
 
-        data = ParamConfigSrv.edit_machine(
-            id=args.get("id"),
-            ip=args.get("ip"),
+        data = ServerMachineSrv.edit_machine(
+            url=args.get("url"),
             is_master=args.get("is_master"),
             status=args.get("status"),
         )

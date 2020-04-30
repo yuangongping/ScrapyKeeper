@@ -13,6 +13,7 @@ from ScrapyKeeper import app
 from ScrapyKeeper.model import db
 from ScrapyKeeper.model.ServerMachine import ServerMachine
 
+
 def create_db():
     db.init_app(app)
     db.create_all()
