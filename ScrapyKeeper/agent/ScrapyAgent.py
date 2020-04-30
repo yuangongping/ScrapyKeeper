@@ -29,7 +29,10 @@ class ScrapyAgent(object):
         return self.scrapyd_api.list_projects()
 
     def del_project(self, project_name):
-        return self.scrapyd_api.delete_project(project_name)
+        try:
+            return self.scrapyd_api.delete_project(project_name)
+        except:
+            return False
 
     def list_spiders(self, project_name):
         return self.scrapyd_api.list_spiders(project_name)
@@ -42,7 +45,6 @@ class ScrapyAgent(object):
 
     def deploy(self, project_name: str, version: int, egg_byte: bytes) -> "Dict or bool":
         spider_num = self.scrapyd_api.add_version(project_name, version, egg_byte)
-        print('--------- spider_num ', spider_num)
         return {
             'project': project_name,
             'version': version,

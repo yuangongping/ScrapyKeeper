@@ -13,3 +13,4 @@ def error_res(msg: str) -> dict:
         'status': 'error',
         'message': msg
     })
+

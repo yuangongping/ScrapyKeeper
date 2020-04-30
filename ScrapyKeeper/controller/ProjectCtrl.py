@@ -22,4 +22,10 @@ class ProjectCtrl(Resource):
         pass
 
     def delete(self):
-        pass
+        parser = reqparse.RequestParser()
+        parser.add_argument('id', required=True, type=int)
+        args = parser.parse_args(strict=True)
+        projectSrv = ProjectSrv()
+        data = projectSrv.del_projects(args=args)
+        return success_res(data)
+

@@ -45,6 +45,17 @@ class ProjectSrv(object):
                 egg_bytes_slave=open(egg_path.get("slave"), "rb")
             )
 
+    def del_projects(self, args: object):
+        # 删除srcapyd主服务器的指定工程下的所有版本
+        if self.master_agent.del_project(args.project_name):
+            # 遍历srcapyd从服务器， 删除的指定工程下的所有版本
+            for agent in self.slave_agents:
+               if not agent.del_project(args.project_name):
+                    abort(500, message="删除节点：{} 时出现错误！".format(agent.server_url))
+        # 删除系统上的数据库
+        Project.delete(id=args.id)
+        return "已删除工程！"
+
     def deploy(self, project: dict, egg_bytes_master: bytes, egg_bytes_slave: bytes = None) -> dict:
         if egg_bytes_slave is not None and project['is_msd'] == 1:
             version = int(time.time())

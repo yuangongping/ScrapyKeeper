@@ -70,6 +70,13 @@ class Base(db.Model):
         return dic
 
     @classmethod
+    def delete(cls, id:int) -> bool:
+        item = cls.query.filter_by(id=id).first()
+        db.session.delete(item)
+        db.session.commit()
+
+
+    @classmethod
     def find_by_id(cls, _id: int) -> 'cls or None':
         item = cls.query.filter(cls.id == _id).first()
         return item.to_dict() if item is not None else None
