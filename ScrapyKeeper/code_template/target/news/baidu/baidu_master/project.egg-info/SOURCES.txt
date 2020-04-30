@@ -1,0 +1,15 @@
+setup.py
+baidu_master/__init__.py
+baidu_master/items.py
+baidu_master/middlewares.py
+baidu_master/pipelines.py
+baidu_master/settings.py
+baidu_master/spiders/__init__.py
+baidu_master/spiders/baidu_spider.py
+baidu_master/utils/__init__.py
+baidu_master/utils/parse_err.py
+project.egg-info/PKG-INFO
+project.egg-info/SOURCES.txt
+project.egg-info/dependency_links.txt
+project.egg-info/entry_points.txt
+project.egg-info/top_level.txt
