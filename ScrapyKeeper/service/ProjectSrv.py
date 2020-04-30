@@ -7,6 +7,8 @@
 # @contact : xie-hong-tao@qq.com
 import time
 import re
+from typing import BinaryIO
+
 from xpinyin import Pinyin
 from flask_restful import abort
 from ScrapyKeeper.agent.ScrapyAgent import ScrapyAgent
@@ -14,7 +16,6 @@ from ScrapyKeeper.model.ServerMachine import ServerMachine
 from ScrapyKeeper.model.Project import Project
 from ScrapyKeeper.utils.scrapy_generator import TemplateGenerator
 from ScrapyKeeper.utils.ThreadWithResult import ThreadWithResult
-
 
 
 class ProjectSrv(object):
@@ -26,10 +27,10 @@ class ProjectSrv(object):
         self.master_agent = ScrapyAgent(master_url)
         self.slave_agents = [ScrapyAgent(url) for url in slave_urls]
 
-    def add_project(self, args: object):
-        url = args.url
-        name_zh = args.name_zh
-        template = args.template
+    def add_project(self, args: dict):
+        url = args.get('url')
+        name_zh = args.get('name_zh')
+        template = args.get('template')
         pinyin = Pinyin()
         name_en = pinyin.get_pinyin(
             re.findall("[\u4e00-\u9fa5]+", name_zh)[0]
@@ -46,7 +47,7 @@ class ProjectSrv(object):
                 egg_bytes_slave=open(egg_path.get("slave"), "rb")
             )
 
-    def deploy(self, project: dict, egg_bytes_master: bytes, egg_bytes_slave: bytes = None) -> dict:
+    def deploy(self, project: dict, egg_bytes_master: BinaryIO, egg_bytes_slave: BinaryIO = None) -> dict:
         if egg_bytes_slave is not None and project['is_msd'] == 1:
             version = int(time.time())
             proj = self.master_agent.deploy(project['project_name'], version, egg_bytes_master)
