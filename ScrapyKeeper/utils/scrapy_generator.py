@@ -1,23 +1,16 @@
+# -*- coding: utf-8 -*-
 import os
-import re
 from ScrapyKeeper.code_template.sources.news.generator import MasterFactory, SlaveFactory
-from xpinyin import Pinyin
 from ScrapyKeeper.utils.ThreadWithResult import TreadWithResult
 
 
 class TemplateGenerator(object):
     @classmethod
-    def create_scrapy_project(cls, url, name, template) -> dict:
-        name_zh = "人民网"
-        url = "https://www.baidu.com/"
-        template = "news"
-
-        pinyin = Pinyin()
-
-        project_name = pinyin.get_pinyin(
-            re.findall("[\u4e00-\u9fa5]+", name_zh)[0]
-        )
-        project_name = ''.join(project_name.split("-"))
+    def create_scrapy_project(cls, url=None, name_en=None, name_zh=None, template=None) -> dict:
+        url = url
+        name_zh = name_zh
+        project_name = name_en
+        template = template
         factory_master = MasterFactory(
             project_name=project_name, url=url,
             template=template, name_zh=name_zh
@@ -52,10 +45,10 @@ class TemplateGenerator(object):
     def create_egg(cls, template=None, project_name=None):
         try:
             root_path = os.path.dirname(os.path.dirname(__file__))
-            task_m = TreadWithResult(target=exec_egg_cli, args=(
+            task_m = TreadWithResult(target=cls.exec_egg_cli, args=(
                 root_path, template, project_name, True
             ))
-            task_s = TreadWithResult(target=exec_egg_cli, args=(
+            task_s = TreadWithResult(target=cls.exec_egg_cli, args=(
                 root_path, template, project_name, False
             ))
             task_m.start()
@@ -71,5 +64,8 @@ class TemplateGenerator(object):
             return None
 
     @classmethod
-    def create(cls):
+    def create(cls, url=None, name_en=None, name_zh=None, template=None) -> dict:
+        cls.create_scrapy_project(url=url, name_en=name_en, name_zh=name_zh, template=template)
+        return cls.create_egg(template=template, project_name=name_en)
+
 
