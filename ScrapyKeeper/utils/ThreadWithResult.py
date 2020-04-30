@@ -1,7 +1,8 @@
 import threading
+import time
 
 
-class TreadWithResult(threading.Thread):
+class ThreadWithResult(threading.Thread):
     """  带返回数据的线程 """
     def run(self):
         try:

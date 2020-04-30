@@ -6,14 +6,15 @@
 # @Author  : Taoz
 # @contact : xie-hong-tao@qq.com
 import time
-from typing import Dict
+import re
+from xpinyin import Pinyin
 from flask_restful import abort
 from ScrapyKeeper.agent.ScrapyAgent import ScrapyAgent
 from ScrapyKeeper.model.ServerMachine import ServerMachine
 from ScrapyKeeper.model.Project import Project
 from ScrapyKeeper.utils.scrapy_generator import TemplateGenerator
-import re
-from xpinyin import Pinyin
+from ScrapyKeeper.utils.ThreadWithResult import ThreadWithResult
+
 
 
 class ProjectSrv(object):
@@ -49,9 +50,21 @@ class ProjectSrv(object):
         if egg_bytes_slave is not None and project['is_msd'] == 1:
             version = int(time.time())
             proj = self.master_agent.deploy(project['project_name'], version, egg_bytes_master)
-            proj_slaves = [agent.deploy(project['project_name'], version, egg_bytes_slave)
-                           for agent in self.slave_agents]
-            if proj and any(proj_slaves):
+
+            threads = []
+            for agent in self.slave_agents:
+                t = ThreadWithResult(target=agent.deploy, args={
+                    project['project_name'],
+                    version,
+                    egg_bytes_slave
+                })
+                threads.append(t)
+                t.start()
+
+            [t.join() for t in threads]
+            slaved_res = [t.get_result() for t in threads]
+
+            if proj and any(slaved_res):
                 Project.save(project)
                 return project
             else:
