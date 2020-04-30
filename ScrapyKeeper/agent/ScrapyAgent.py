@@ -13,7 +13,7 @@ from scrapyd_api import ScrapydAPI
 
 
 class ScrapyAgent(object):
-    """ scrapy项目代理服务类 """
+    """ scrapy项目代理类 """
     def __init__(self, server_url):
         self.server_url = server_url
         self.scrapyd_api = ScrapydAPI(server_url)
