@@ -11,6 +11,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import DateTime, Date, Numeric
 
 from ScrapyKeeper import app
+from sqlalchemy import DateTime, Date, Numeric
 
 db = SQLAlchemy(app, session_options=dict(autocommit=False, autoflush=True))
 db.init_app(app)
