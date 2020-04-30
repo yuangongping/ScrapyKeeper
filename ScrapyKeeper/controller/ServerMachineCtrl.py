@@ -20,11 +20,7 @@ class ServerMachineCtrl(Resource):
         parser.add_argument('status', type=int, required=True)
         args = parser.parse_args(strict=True)
 
-        data = ServerMachineSrv.save(
-            url=args.get("url"),
-            is_master=args.get("is_master"),
-            status=args.get("status"),
-        )
+        data = ServerMachineSrv.save(args)
         return success_res(data)
 
     def delete(self):
@@ -32,7 +28,6 @@ class ServerMachineCtrl(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('url', required=True, type=str)
         args = parser.parse_args(strict=True)
-
         ServerMachineSrv.delete(
             url=args.get("url"),
         )
@@ -47,9 +42,5 @@ class ServerMachineCtrl(Resource):
         parser.add_argument('status', type=int, required=True)
         args = parser.parse_args(strict=True)
 
-        data = ServerMachineSrv.save(
-            url=args.get("url"),
-            is_master=args.get("is_master"),
-            status=args.get("status"),
-        )
+        data = ServerMachineSrv.save(args)
         return success_res(data)

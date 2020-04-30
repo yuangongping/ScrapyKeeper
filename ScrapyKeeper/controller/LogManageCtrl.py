@@ -23,7 +23,7 @@ class LogManageCtrl(Resource):
         data = LogManageSrv.log_messages(
             project_name=args.get("project_name"),
             page=args.get("page"),
-            page_size=args.get("page_size"),
+            page_size=args.get("page_size")
         )
         return success_res(data)
 

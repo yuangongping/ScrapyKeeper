@@ -9,19 +9,18 @@ from flask_restful import abort
 
 class ServerMachineSrv(object):
     @classmethod
-    def save(cls, url: str, is_master: int, status: int):
+    def save(cls, args: dict):
         """
         功能:　添加服务器
         :return: 成功返回success, 失败返回相应的异常
         """
 
         try:
-
             # 判断添加的服务器是否可用
-            res = requests.get(url, timeout=1)
+            res = requests.get(args.get('url'), timeout=1)
             if res.status_code == 200:
                 # 保存数据
-                ServerMachine.save(dict(url=url, status=status, is_master=is_master))
+                ServerMachine.save(args)
             else:
                 abort(400, message='Server machine disabled 服务器不可用')
         except Exception as e:
