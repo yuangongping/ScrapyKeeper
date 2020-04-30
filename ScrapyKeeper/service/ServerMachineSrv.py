@@ -21,13 +21,7 @@ class ServerMachineSrv(object):
             res = requests.get(url, timeout=1)
             if res.status_code == 200:
                 # 保存数据
-                ServerMachine.save()
-                obj = ServerMachine(
-                    url=url,
-                    status=status,
-                    is_master=is_master
-                )
-
+                ServerMachine.save(dict(url=url, status=status, is_master=is_master))
             else:
                 abort(400, message='Server machine disabled 服务器不可用')
         except Exception as e:
@@ -54,28 +48,8 @@ class ServerMachineSrv(object):
             return data
         except Exception as e:
             db.session.rollback()
-            abort(400, str(e))
-
-    @classmethod
-    def edit(cls, url: str, is_master: int, status: int):
-        """
-        功能: 编辑服务器的信息
-        :return: 成功返回'data': 'success', 失败'data': 'error'
-        """
-        try:
-            # 判断服务器是否可用
-            res = requests.get(url, timeout=2)
-            if res.status_code == 200:
-                machine = ServerMachine.query.filter_by(url=url).first()
-                machine.url = url
-                machine.is_master = is_master
-                machine.status = status
-                db.session.commit()
-                return machine.to_dict
-            else:
-                abort(500, 'machine unused')
-        except Exception as e:
-            abort(400, 'edit machines fail: %s' % e)
+            print(e)
+            abort(500, message='Fail to list server machine')
 
     @classmethod
     def delete(cls, url: str):
@@ -89,4 +63,4 @@ class ServerMachineSrv(object):
                 db.session.delete(machine)
                 db.session.commit()
         except Exception as e:
-            abort(400, 'delete machine fail')
+            abort(400, message='delete machine fail')

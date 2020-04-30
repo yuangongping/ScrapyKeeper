@@ -10,10 +10,7 @@ from flask import abort
 class LogManageSrv(object):
     @classmethod
     def es_connection(cls):
-        '''
-        连接elasticsearch数据库
-        :return:
-        '''
+        """ 连接elasticsearch数据库 """
         try:
             es_connection = Elasticsearch(hosts=['http://172.10.10.31:9200/'])
             return es_connection
@@ -22,13 +19,13 @@ class LogManageSrv(object):
 
     @classmethod
     def log_messages(cls, project_name: str = None, page: int = 1, page_size: int = 5):
-        '''
+        """
         根据项目分页查找该项目的错误日志信息
         :param project_name:  项目名称
         :param page: 页码
         :param page_size: 每页显示多少条
         :return: 返回对应页的错误日志信息
-        '''
+        """
         if not project_name:
             return None
         # 操作elasticsearch数据库的执行语句
@@ -75,7 +72,7 @@ class LogManageSrv(object):
 
     @classmethod
     def log_count(cls):
-        '''
+        """
        计算各项目的错误日志数, 用于提示哪些项目有错误日志, 错误日志数大于0的项目将有预警标识
        :return: [
                     {
@@ -87,7 +84,7 @@ class LogManageSrv(object):
                       "doc_count" : 52
                     }
               ]
-       '''
+       """
         # 操作elasticsearch数据库的执行语句
         # 主要是按照项目名称分组计数
         query_json = {
@@ -113,10 +110,10 @@ class LogManageSrv(object):
 
     @classmethod
     def log_delete(cls, project_name: str):
-        '''
+        """
         处理项目日志: 删除数据库与收集本地日志中已被处理过得日志
         :return:
-        '''
+        """
         # 操作elasticsearch数据库的执行语句
         # 按照项目名称及时间删除已被处理过得日志
         query_json = {
