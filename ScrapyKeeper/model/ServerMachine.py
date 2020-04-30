@@ -23,5 +23,6 @@ class ServerMachine(Base):
 
     @classmethod
     def slave_urls(cls):
-        sms = cls.query.filter(and_(cls.status == 1, cls.is_master == 1)).all()
+        sms = cls.query.filter(and_(cls.status == 1, cls.is_master == 0)).all()
         return [sm.url for sm in sms]
+

@@ -18,6 +18,9 @@ class ScrapyAgent(object):
         self.server_url = server_url
         self.scrapyd_api = ScrapydAPI(server_url)
 
+    def __repr__(self):
+        return '<ScrapyAgent %s>' % self.server_url
+
     @property
     def server(self):
         return self.server_url
@@ -39,6 +42,7 @@ class ScrapyAgent(object):
 
     def deploy(self, project_name: str, version: int, egg_byte: bytes) -> "Dict or bool":
         spider_num = self.scrapyd_api.add_version(project_name, version, egg_byte)
+        print('--------- spider_num ', spider_num)
         return {
             'project': project_name,
             'version': version,
