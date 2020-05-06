@@ -13,6 +13,8 @@ from ScrapyKeeper.controller.SchedulerCtrl import SchedulerCtrl
 from ScrapyKeeper.controller.OriginalLogCtrl import OriginalLogCtrl
 from ScrapyKeeper.controller.DataCentralCtrl import DataCentralCtrl
 from ScrapyKeeper.controller.DataStorageCtrl import DataStorageCtrl
+from ScrapyKeeper.controller.DataCountCtrl import DataCountCtrl
+
 
 
 def regist_router():
@@ -23,4 +25,6 @@ def regist_router():
     restful_api.add_resource(OriginalLogCtrl, "/original_log")
     restful_api.add_resource(DataCentralCtrl, "/data_central")
     restful_api.add_resource(DataStorageCtrl, "/data_storage")
+    restful_api.add_resource(DataCountCtrl, "/data_count")
+
 
