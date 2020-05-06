@@ -1,6 +1,5 @@
 import os
 
-
 def read_file(path):
     with open(path, 'r', encoding="utf-8") as f:
         return f.read()
@@ -28,16 +27,16 @@ def generate(project_name: str, start_url: str, name_zh: str):
     for root, dirs, files in walk:
         for file in files:
             source_file = r'{}/{}'.format(root, file)
-            if source_file.endswith(".pyc"):
-                continue
             abs_dest_dir = root.replace(source_tmpl_dir, dest_proj_dir)
             mkdir(abs_dest_dir)
             dest_file = '{}/{}'.format(abs_dest_dir, file)
 
             content = read_file(source_file)
             content = content.replace("{{project_name}}", project_name)
-            content = content.replace("__ProjectNameCapitalize__", project_name.capitalize())
+            content = content.replace("{{project_name_capitalize}}", project_name.capitalize())
             content = content.replace("{{project_name_zh}}", name_zh)
             content = content.replace("{{start_url}}", start_url)
 
             write_file(dest_file, content)
+
+

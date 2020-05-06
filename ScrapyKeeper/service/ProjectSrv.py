@@ -8,7 +8,7 @@
 import time
 import re
 from typing import BinaryIO
-
+from flask import Response
 from xpinyin import Pinyin
 from flask_restful import abort
 from ScrapyKeeper.agent.ScrapyAgent import ScrapyAgent
@@ -33,25 +33,29 @@ class ProjectSrv(object):
         url = args.get('url')
         name_zh = args.get('project_alias')
         template = args.get('category')
+        name_zh = re.findall("[\u4e00-\u9fa5]+", name_zh)
+        if name_zh:
+            name_zh = ''.join(name_zh)
+        else:
+            abort(400, message="请输入中文的项目名！")
+
         pinyin = Pinyin()
-        name_en = pinyin.get_pinyin(
-            re.findall("[\u4e00-\u9fa5]+", name_zh)[0]
-        )
+        name_en = pinyin.get_pinyin(name_zh)
         name_en = ''.join(name_en.split("-"))
         egg_path = TemplateGenerator.create(
             url=url, name_en=name_en,
             name_zh=name_zh, template=template
         )
-        if egg_path and egg_path.get("slave") and egg_path.get("master"):
-            deploy_status = self.deploy(
-                project={"is_msd": 1, "project_name": name_en,
-                     "project_alias": name_zh, "category": template
-                },
-                egg_bytes_master=open(egg_path.get("master"), "rb"),
-                egg_bytes_slave=open(egg_path.get("slave"), "rb")
-            )
-            if deploy_status:
-                self.sync_spiders(args={"project_name": deploy_status.get("project_name")})
+        # if egg_path and egg_path.get("slave") and egg_path.get("master"):
+        #     deploy_status = self.deploy(
+        #         project={"is_msd": 1, "project_name": name_en,
+        #              "project_alias": name_zh, "category": template
+        #         },
+        #         egg_bytes_master=open(egg_path.get("master"), "rb"),
+        #         egg_bytes_slave=open(egg_path.get("slave"), "rb")
+        #     )
+        #     if deploy_status:
+        #         self.sync_spiders(args={"project_name": deploy_status.get("project_name")})
 
     def edit_project(self, args: dict):
         return Project.save(dic=args)
