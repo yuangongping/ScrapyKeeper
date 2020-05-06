@@ -1,28 +1,21 @@
 # -*- coding: utf-8 -*-
-from ..items import *
+from ..items import __ProjectNamecapitalize__Item
+from scrapy.spiders.crawl import Rule, CrawlSpider
+from scrapy.linkextractors import LinkExtractor
 
 
-class {{project_name_capitalize}}Spider(scrapy.Spider):
+class __ProjectNamecapitalize__Spider(CrawlSpider):
     name = "{{project_name}}_master_spider"
-    url = "{{start_url}}"
+    start_urls = ["{{start_url}}"]
 
-    def start_requests(self):
-        """
-        功能: 发出初始页面的请求
-        :return:
-        """
-        yield scrapy.Request(
-            url=self.url,
-            callback=self.parse,
-        )
+    url_prefix = '.'.join(start_urls[0].split('.')[1:])
 
-    def parse(self, response):
-        all_a = response.xpath("//body//a/@href").extract()
-        for href in all_a:
-            if "java" in href:
-               continue
-            href = response.urljoin(href.strip())
-            if 'http' in href:
-                item = {{project_name_capitalize}}Item()
-                item['url'] = href
-                yield item
+    rules = [
+        Rule(LinkExtractor(allow=(r'%s*' % url_prefix)), callback='parse_list')
+    ]
+
+    def parse_list(self, response):
+        if 'http' in response.url:
+            item = __ProjectNamecapitalize__Item()
+            item['url'] = response.url
+            yield item

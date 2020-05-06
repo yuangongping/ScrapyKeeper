@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from scrapy import signals
-from scrapy.utils.project import get_project_settings
-import json
-import logging
 import random
+from scrapy.utils.project import get_project_settings
+import logging
 import time
+import json
 import requests
 
 
@@ -62,7 +62,6 @@ class __ProjectNamecapitalize__SpiderMiddleware(object):
 
 
 class __ProjectNamecapitalize__DownloaderMiddleware(object):
-
     @classmethod
     def from_crawler(cls, crawler):
         s = cls()
@@ -80,5 +79,3 @@ class __ProjectNamecapitalize__DownloaderMiddleware(object):
 
     def spider_opened(self, spider):
         spider.logger.info('Spider opened: %s' % spider.name)
-
-

@@ -8,9 +8,10 @@ from ..mysql_db.tables import Content
 from ..utils.extractor import Extractor
 from ..utils.tools import upload, unify_date
 import requests
+from urllib.parse import urlparse
 
 
-class {{project_name_capitalize}}SlaveSpider(RedisSpider):
+class ProjectNamecapitalizeSlaveSpider(RedisSpider):
     name = "{{project_name}}_slave_spider"
     redis_key = "{{project_name}}"
     session = session
@@ -35,7 +36,7 @@ class {{project_name_capitalize}}SlaveSpider(RedisSpider):
 
     def parse(self, response):
         result = self.gne_extract.extract(response.text)
-        detailItem = {{project_name_capitalize}}DetailItem()
+        detailItem = __ProjectNamecapitalize__DetailItem()
         detailItem["title"] = result['title']
         detailItem["author"] = result['author']
         detailItem["source"] = "人民网"
@@ -63,10 +64,8 @@ class {{project_name_capitalize}}SlaveSpider(RedisSpider):
 
         all_a = response.xpath("//body//a/@href").extract()
         for href in all_a:
-            if "java" in href:
-                continue
             href = response.urljoin(href.strip())
-            if 'http' in href:
-                item = {{project_name_capitalize}}Item()
+            if urlparse(href).netloc in href:
+                item = __ProjectNamecapitalize__Item()
                 item['url'] = href
                 yield item

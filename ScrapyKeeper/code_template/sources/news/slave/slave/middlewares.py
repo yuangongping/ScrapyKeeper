@@ -8,7 +8,7 @@ import json
 import requests
 
 
-class {{project_name_capitalize}}ProxyMiddleware(object):
+class __ProjectNamecapitalize__ProxyMiddleware(object):
     """换代理IP"""
     settings = get_project_settings()
     proxy_list = []
@@ -36,7 +36,7 @@ class {{project_name_capitalize}}ProxyMiddleware(object):
         request.meta['proxy'] = 'http://%s:%s' % (proxy['ip'], proxy['port'])
 
 
-class {{project_name_capitalize}}SpiderMiddleware(object):
+class __ProjectNamecapitalize__SpiderMiddleware(object):
     @classmethod
     def from_crawler(cls, crawler):
         s = cls()
@@ -61,7 +61,7 @@ class {{project_name_capitalize}}SpiderMiddleware(object):
         spider.logger.info('Spider opened: %s' % spider.name)
 
 
-class {{project_name_capitalize}}DownloaderMiddleware(object):
+class __ProjectNamecapitalize__DownloaderMiddleware(object):
     @classmethod
     def from_crawler(cls, crawler):
         s = cls()

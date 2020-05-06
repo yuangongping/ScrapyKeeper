@@ -17,7 +17,7 @@ DOWNLOADER_MIDDLEWARES = {
 }
 
 ITEM_PIPELINES = {
-   '{{project_name}}.pipelines.{{project_name_capitalize}}Pipeline': 300,
+   '{{project_name}}.pipelines.__ProjectNamecapitalize__Pipeline': 300,
 }
 
 MYEXT_ENABLED = True      # 开启扩展
@@ -39,5 +39,3 @@ BLOOMFILTER_HASH_NUMBER = 6
 BLOOMFILTER_BIT = 25
 SCHEDULER = "scrapy_redis_bloomfilter.scheduler.Scheduler"
 SCHEDULER_DUPEFILTER_KEY = '%(spider)s:dupefilter'  # 去重规则，在redis中保存时对应的key
-
-

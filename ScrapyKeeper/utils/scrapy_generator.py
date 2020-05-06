@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
-from ScrapyKeeper.code_template.sources.news.generator import MasterFactory, SlaveFactory
+from ScrapyKeeper.code_template.sources.news.generator import generate as news_generate
 from ScrapyKeeper.utils.ThreadWithResult import ThreadWithResult
 
 
@@ -11,16 +11,10 @@ class TemplateGenerator(object):
         name_zh = name_zh
         project_name = name_en
         template = template
-        factory_master = MasterFactory(
-            project_name=project_name, url=url,
-            template=template, name_zh=name_zh
+        news_generate(
+            project_name=project_name, start_url=url, name_zh=name_zh
         )
-        factory_slave = SlaveFactory(
-            project_name=project_name, url=url,
-            template=template, name_zh=name_zh
-        )
-        factory_master.creat_all()
-        factory_slave.creat_all()
+
 
     @classmethod
     def exec_egg_cli(cls, root_path, template, project_name, is_master):
