@@ -6,8 +6,8 @@ Base = declarative_base()
 
 
 class Content(Base):
-    __tablename__ = '$$$$$$$$'
-    __table_args__ = {'comment': '%%%%%%%%'}
+    __tablename__ = '{{project_name}}'
+    __table_args__ = {'comment': '{{project_name_zh}}'}
     id = Column(Integer, autoincrement=True, primary_key=True, comment='id')
     collect_date = Column(DateTime, default=datetime.datetime.now, comment='数据采集时间')
 
