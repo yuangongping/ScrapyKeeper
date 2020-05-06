@@ -8,6 +8,7 @@ from ..mysql_db.tables import Content
 from ..utils.extractor import Extractor
 from ..utils.tools import upload, unify_date
 import requests
+from urllib.parse import urlparse
 
 
 class @@@@@@@@SlaveSpider(RedisSpider):
@@ -63,10 +64,8 @@ class @@@@@@@@SlaveSpider(RedisSpider):
 
         all_a = response.xpath("//body//a/@href").extract()
         for href in all_a:
-            if "java" in href:
-                continue
             href = response.urljoin(href.strip())
-            if 'http' in href:
+            if urlparse(href).netloc in href:
                 item = @@@@@@@@Item()
                 item['url'] = href
                 yield item
