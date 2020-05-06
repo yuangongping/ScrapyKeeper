@@ -8,11 +8,13 @@
 import logging
 import os
 from flask import Flask, send_from_directory
-from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
-from flask_login import LoginManager
 from flask_restful import Api
 from ScrapyKeeper import config
+from apscheduler.schedulers.background import BackgroundScheduler
+ram_scheduler = BackgroundScheduler()
+
+
 
 app = Flask(__name__)
 restful_api = Api(app)
@@ -38,3 +40,6 @@ def favicon():
 # 注册路由
 from .router import regist_router
 regist_router()
+# from ScrapyKeeper.service.SchedulerSrv import SchedulerSrv
+# SchedulerSrv.add_existed_job_to_ram_scheduler()
+ram_scheduler.start()

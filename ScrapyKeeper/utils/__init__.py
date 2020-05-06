@@ -1,4 +1,16 @@
-from scrapyd_api import ScrapydAPI
-scrapyd = ScrapydAPI('http://localhost:6800')
-ss = scrapyd.delete_project("nadsadsadasd")
-print(ss)
+from flask import jsonify
+
+
+def success_res(data=None) -> dict:
+    return jsonify({
+        'status': 'ok',
+        'data': data
+    })
+
+
+def error_res(msg: str) -> dict:
+    return jsonify({
+        'status': 'error',
+        'message': msg
+    })
+

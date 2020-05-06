@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 from ScrapyKeeper.code_template.sources.news.generator import MasterFactory, SlaveFactory
-from ScrapyKeeper.utils.ThreadWithResult import TreadWithResult
+from ScrapyKeeper.utils.ThreadWithResult import ThreadWithResult
 
 
 class TemplateGenerator(object):
@@ -45,10 +45,10 @@ class TemplateGenerator(object):
     def create_egg(cls, template=None, project_name=None):
         try:
             root_path = os.path.dirname(os.path.dirname(__file__))
-            task_m = TreadWithResult(target=cls.exec_egg_cli, args=(
+            task_m = ThreadWithResult(target=cls.exec_egg_cli, args=(
                 root_path, template, project_name, True
             ))
-            task_s = TreadWithResult(target=cls.exec_egg_cli, args=(
+            task_s = ThreadWithResult(target=cls.exec_egg_cli, args=(
                 root_path, template, project_name, False
             ))
             task_m.start()

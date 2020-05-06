@@ -11,6 +11,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import DateTime, Date, Numeric
 
 from ScrapyKeeper import app
+from sqlalchemy import DateTime, Date, Numeric
 
 db = SQLAlchemy(app, session_options=dict(autocommit=False, autoflush=True))
 db.init_app(app)
@@ -55,25 +56,30 @@ class Base(db.Model):
 
     @classmethod
     def save(cls, dic: dict) -> "Dict or None":
-        if 'id' in dic:
-            item = cls.query.filter(cls.id == dic['id']).first()
-            if item is None:
-                raise ValueError('Table %s has no data where id %s' % (cls.__table__, dic['id']))
+        try:
+            if 'id' in dic:
+                item = cls.query.filter(cls.id == dic['id']).first()
+                if item is None:
+                    raise ValueError('Table %s has no data where id %s' % (cls.__table__, dic['id']))
+                else:
+                    item.set(dic)
+                    dic = item.to_dict()
             else:
-                item.set(dic)
-                dic = item.to_dict()
-        else:
-            new_one = cls()
-            new_one.set(dic)
-            db.session.add(new_one)
-        db.session.commit()
-        return dic
+                new_one = cls()
+                new_one.set(dic)
+                db.session.add(new_one)
+            db.session.commit()
+            return dic
+        except:
+            db.session.rollback()
+            return None
 
     @classmethod
-    def delete(cls, id:int) -> bool:
-        item = cls.query.filter_by(id=id).first()
-        db.session.delete(item)
-        db.session.commit()
+    def delete(cls, filters: dict) -> bool:
+        objs = cls.query.filter_by(**filters).all()
+        for item in objs:
+            db.session.delete(item)
+            db.session.commit()
 
 
     @classmethod
@@ -85,3 +91,15 @@ class Base(db.Model):
     def all(cls, _to_dict: bool = True) -> "List":
         data = cls.query.all()
         return [item.to_dict() for item in data] if _to_dict else data
+
+    @classmethod
+    def get(cls, page_index, page_size) -> "List":
+        pagination = cls.query.paginate(
+            page=page_index, per_page=page_size, error_out=False)
+        res = {
+            "total": pagination.total,
+            "data": [item.to_dict() for item in pagination.items]
+        }
+        return res
+
+

@@ -20,3 +20,5 @@ class @@@@@@@@DetailItem(scrapy.Item):
     url = scrapy.Field()
     "上传至文件系统后返回的uuid"
     file_group = scrapy.Field()
+
+    file_size = scrapy.Field()

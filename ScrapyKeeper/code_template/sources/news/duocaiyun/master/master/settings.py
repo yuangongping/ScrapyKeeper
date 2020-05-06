@@ -19,7 +19,7 @@ ITEM_PIPELINES = {
 }
 
 # scrapy-redis 配置
-REDIS_HOST = 'localhost'
+REDIS_HOST = '172.16.119.6'
 REDIS_PORT = 6379
 # 去重类，要使用Bloom Filter请替换DUPEFILTER_CLASS
 DUPEFILTER_CLASS = "scrapy_redis_bloomfilter.dupefilter.RFPDupeFilter"

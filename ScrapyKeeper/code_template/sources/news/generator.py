@@ -477,6 +477,8 @@ class SlaveFactory:
         content = self.__read(source_filename)
         content = content.replace("@@@@@@@@", self.project_name.capitalize() + "Slave")
         content = content.replace("$$$$$$$$", self.project_name)
+        content = content.replace("&&&&&&&&", self.name_zh)
+
         self._write(dis_filename, content)
 
     def process_extensions(self):
@@ -649,7 +651,7 @@ class SlaveFactory:
         ])
         self._makedirs(dis_filename)
         content = self.__read(source_filename)
-        content = content.replace("@@@@@@@@", self.project_name.capitalize() + "Master")
+        content = content.replace("@@@@@@@@", self.project_name.capitalize() + "Slave")
         content = content.replace("$$$$$$$$", self.project_name)
         self._write(dis_filename, content)
 
@@ -762,6 +764,7 @@ class SlaveFactory:
         self.process_middlewares()
         self.process_item()
         self.process_pipelines()
+        self.process_extensions()
         self.process_init_next()
         self.process_util_init()
         self.process_util_extractor()
