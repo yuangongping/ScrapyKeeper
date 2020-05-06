@@ -1,3 +1,0 @@
-[scrapy]
-settings = renminwang_slave.settings
-

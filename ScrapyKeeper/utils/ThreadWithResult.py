@@ -14,6 +14,15 @@ class ThreadWithResult(threading.Thread):
     def get_result(self):
         return self.result
 
+#
+# def task(name):
+#     print('%s start' % name)
+#     time.sleep(3)
+#     print('%s end' % name)
+#     return 'return name %s' % name
+
+# ta = ThreadWithResult(target=task('t1'), args={'name': t1})
+
 
 # class TreadWithResult(threading.Thread):
 #     """  带返回数据的线程 """

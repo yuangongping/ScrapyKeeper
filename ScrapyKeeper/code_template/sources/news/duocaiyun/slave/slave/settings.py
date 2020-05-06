@@ -9,8 +9,8 @@ NEWSPIDER_MODULE = '$$$$$$$$.spiders'
 ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
-CONCURRENT_REQUESTS = 1
-DOWNLOAD_DELAY = 1
+CONCURRENT_REQUESTS = 32
+# DOWNLOAD_DELAY = 1
 
 DOWNLOADER_MIDDLEWARES = {
    'scrapy.downloadermiddleware.useragent.UserAgentMiddleware': None,
@@ -27,8 +27,7 @@ EXTENSIONS = {
    '$$$$$$$$.extensions.RedisSpiderSmartIdleClosedExensions': 500
 }
 
-# REDIS_HOST = '172.10.10.183'
-REDIS_HOST = 'localhost'
+REDIS_HOST = '172.16.119.6'
 REDIS_PORT = 6379
 REDIS_START_URLS_AS_SET = True
 

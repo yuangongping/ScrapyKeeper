@@ -5,14 +5,17 @@ from .items import @@@@@@@@DetailItem
 from .mysql_db.tables import Content
 from .mysql_db.operate import session
 import logging
+import requests
 
 
 
-class @@@@@@@@ItemPipeline(object):
+class @@@@@@@@Pipeline(object):
     def __init__(self, redis_host, redis_port):
         self.redis_host = redis_host
         self.redis_port = redis_port
         self.redis_name = "$$$$$$$$"
+        self.batch_crawl_num = 0
+        self.batch_file_size = 0
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -61,9 +64,22 @@ class @@@@@@@@ItemPipeline(object):
                     setattr(obj, k, v)
                 self.session.add(obj)
                 self.session.commit()
+                self.batch_crawl_num += 1
+                self.batch_file_size += item.get("file_size")
             else:
                 info_urls = item.get('url')
                 self.rediscli.sadd(self.redis_name, json.dumps({'url': info_urls}))
-        except:
-            logging.error("数据存储错误！")
+            """每存储50条数据， 向数据存储接口发送一个请求"""
+            if self.batch_crawl_num == 50:
+                requests.post("http://172.16.119.6:5060/data_storage", data={
+                    "project_name": "$$$$$$$$",
+                    "project_alias": "&&&&&&&&",
+                    "num": 50,
+                    "file_size": self.batch_file_size
+                })
+                # 发送请求后, 计数重置
+                self.batch_crawl_num = 0
+                self.batch_file_size = 0
+        except Exception as e:
+            logging.error("数据存储错误！", e)
             self.session.rollback()

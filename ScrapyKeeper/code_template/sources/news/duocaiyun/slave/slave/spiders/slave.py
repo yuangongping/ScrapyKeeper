@@ -7,16 +7,14 @@ from ..mysql_db.operate import session
 from ..mysql_db.tables import Content
 from ..utils.extractor import Extractor
 from ..utils.tools import upload, unify_date
+import requests
 
 
 class @@@@@@@@SlaveSpider(RedisSpider):
     name = "$$$$$$$$_slave_spider"
     redis_key = "$$$$$$$$"
-
-    def __init__(self):
-        super().__init__()
-        self.session = session
-        self.gne_extract = Extractor()
+    session = session
+    gne_extract = Extractor()
 
     def make_request_from_data(self, data):
         """
@@ -50,12 +48,16 @@ class @@@@@@@@SlaveSpider(RedisSpider):
         "上传至文件系统后返回的uuid"
         uuid_list = []
         img_urls = result['images']
-        # for img_url in img_urls:
-        #     img_url = response.urljoin(img_url)
-        #     img_body = requests.get(url=img_url).content  # 请求附件url
-        #     uuid = upload(response.urljoin(img_body))
-        #     if uuid:
-        #         uuid_list.append(uuid)
+        imgs_size = 0
+        for img_url in img_urls:
+            img_url = response.urljoin(img_url)
+            img_body = requests.get(url=img_url).content  # 请求附件url
+            imgs_size += int(len(img_body) / 1024) # 单位kb
+            uuid = upload(response.urljoin(img_body))
+            if uuid:
+                uuid_list.append(uuid)
+
+        detailItem["file_size"] = imgs_size
         detailItem["file_group"] = json.dumps(uuid_list)
         yield detailItem
 
