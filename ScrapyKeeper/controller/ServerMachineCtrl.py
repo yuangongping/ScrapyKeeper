@@ -19,7 +19,6 @@ class ServerMachineCtrl(Resource):
         parser.add_argument('is_master', type=int, required=True)
         parser.add_argument('status', type=int, required=True)
         args = parser.parse_args(strict=True)
-
         data = ServerMachineSrv.save(args)
         return success_res(data)
 

@@ -1,0 +1,15 @@
+setup.py
+baidushouyeceshi_master/__init__.py
+baidushouyeceshi_master/items.py
+baidushouyeceshi_master/middlewares.py
+baidushouyeceshi_master/pipelines.py
+baidushouyeceshi_master/settings.py
+baidushouyeceshi_master/spiders/__init__.py
+baidushouyeceshi_master/spiders/baidushouyeceshi_spider.py
+baidushouyeceshi_master/utils/__init__.py
+baidushouyeceshi_master/utils/parse_err.py
+project.egg-info/PKG-INFO
+project.egg-info/SOURCES.txt
+project.egg-info/dependency_links.txt
+project.egg-info/entry_points.txt
+project.egg-info/top_level.txt

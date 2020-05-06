@@ -7,7 +7,7 @@
 # @contact : xie-hong-tao@qq.com
 import time
 import socket
-from typing import Dict
+from typing import Dict, BinaryIO
 
 from scrapyd_api import ScrapydAPI
 
@@ -29,7 +29,10 @@ class ScrapyAgent(object):
         return self.scrapyd_api.list_projects()
 
     def del_project(self, project_name):
-        return self.scrapyd_api.delete_project(project_name)
+        try:
+            return self.scrapyd_api.delete_project(project_name)
+        except:
+            return False
 
     def list_spiders(self, project_name):
         return self.scrapyd_api.list_spiders(project_name)
@@ -40,9 +43,8 @@ class ScrapyAgent(object):
     def cancel_spider(self, project_name, job_id):
         return self.scrapyd_api.cancel(project_name, job_id)
 
-    def deploy(self, project_name: str, version: int, egg_byte: bytes) -> "Dict or bool":
+    def deploy(self, project_name: str, version: int, egg_byte: BinaryIO) -> "Dict or bool":
         spider_num = self.scrapyd_api.add_version(project_name, version, egg_byte)
-        print('--------- spider_num ', spider_num)
         return {
             'project': project_name,
             'version': version,
@@ -52,3 +54,6 @@ class ScrapyAgent(object):
     def log_url(self, project_name, spider_name, job_id):
         return '{}/logs/{}/{}/{}'\
             .format(self.server_url, project_name, spider_name, job_id)
+
+    def job_status(self, project_name, job_id):
+        return self.scrapyd_api.job_status(project_name, job_id)

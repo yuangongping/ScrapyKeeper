@@ -9,8 +9,11 @@ from ScrapyKeeper.model import db, Base
 
 
 class Spider(Base):
-    __tablename__ = 'sk_spider'
-    spider_name = db.Column(db.String(100))
+    __tablename__ = 'spider'
+    name = db.Column(db.String(100))
     project_id = db.Column(db.INTEGER, nullable=False, index=True)
-    spider_name_slave = db.Column(db.String(100))
+    project_name = db.Column(db.String(100))
+    type = db.Column(db.String(50))
+    address = db.Column(db.String(100))
+    job_id = db.Column(db.String(255))
 

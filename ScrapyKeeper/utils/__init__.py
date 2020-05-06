@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-# -*- coding:utf-8 -*-
-# Author:chenlincui
 from flask import jsonify
 
 
@@ -16,3 +13,4 @@ def error_res(msg: str) -> dict:
         'status': 'error',
         'message': msg
     })
+
