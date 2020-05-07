@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import redis
 import json
-from .items import __ProjectNamecapitalize__DetailItem
+from .items import __ProjectNamecapitalize__SlaveDetailItem
 from .mysql_db.tables import Content
 from .mysql_db.operate import session
 import logging
@@ -9,11 +9,11 @@ import requests
 
 
 
-class __ProjectNamecapitalize__Pipeline(object):
+class __ProjectNamecapitalize__SlavePipeline(object):
     def __init__(self, redis_host, redis_port):
         self.redis_host = redis_host
         self.redis_port = redis_port
-        self.redis_name = "{{project_name}}"
+        self.redis_name = "{{root_project_name}}"
         self.batch_crawl_num = 0
         self.batch_file_size = 0
 
@@ -58,7 +58,7 @@ class __ProjectNamecapitalize__Pipeline(object):
         """
         try:
             # 如果为详情页的item，则保存数据至mysql， 同时向redis数据库的详情页集合中添加记录， 用于去重
-            if isinstance(item, __ProjectNamecapitalize__DetailItem):
+            if isinstance(item, __ProjectNamecapitalize__SlaveDetailItem):
                 obj = Content()
                 for k, v in item.items():
                     setattr(obj, k, v)

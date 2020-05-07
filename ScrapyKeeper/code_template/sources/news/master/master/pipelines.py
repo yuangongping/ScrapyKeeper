@@ -3,11 +3,11 @@ import json
 import redis
 
 
-class __ProjectNamecapitalize__Pipeline(object):
+class __ProjectNamecapitalize__MasterPipeline(object):
     def __init__(self, redis_host, redis_port):
         self.redis_host = redis_host
         self.redis_port = redis_port
-        self.redis_name = "{{project_name}}"
+        self.redis_name = "{{root_project_name}}"
 
     @classmethod
     def from_crawler(cls, crawler):

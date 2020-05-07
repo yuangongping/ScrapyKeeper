@@ -1,0 +1,15 @@
+setup.py
+ceershi_master/__init__.py
+ceershi_master/items.py
+ceershi_master/middlewares.py
+ceershi_master/pipelines.py
+ceershi_master/settings.py
+ceershi_master/spiders/__init__.py
+ceershi_master/spiders/master.py
+ceershi_master/utils/__init__.py
+ceershi_master/utils/parse_err.py
+project.egg-info/PKG-INFO
+project.egg-info/SOURCES.txt
+project.egg-info/dependency_links.txt
+project.egg-info/entry_points.txt
+project.egg-info/top_level.txt

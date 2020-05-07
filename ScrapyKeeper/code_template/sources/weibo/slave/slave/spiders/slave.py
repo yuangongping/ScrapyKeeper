@@ -2,17 +2,14 @@
 from ..items import *
 from scrapy_redis.utils import bytes_to_str
 from scrapy_redis.spiders import RedisSpider
-from ..mysql_db.operate import session
-from ..mysql_db.tables import Content
 from ..utils.tools import *
 import scrapy
 from lxml import etree
 
 
 class __ProjectNamecapitalize__SlaveSpider(RedisSpider):
-    name = "{{project_name}}_slave_spider"
-    redis_key = "{{project_name}}"
-    session = session
+    name = "{{project_name}}_spider"
+    redis_key = "{{root_project_name}}"
     headers = {
         "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
         "accept-encoding": "gzip, deflate, br",
@@ -36,13 +33,10 @@ class __ProjectNamecapitalize__SlaveSpider(RedisSpider):
         # 从redis数据库中获取详情页的url
         redis_data = json.loads(bytes_to_str(data, self.redis_encoding))
         url = redis_data.get('url')
-        "在mysql中查询"
-        exist = self.session.query(Content).filter_by(url=url).first()
-        if not exist:
-            return scrapy.Request(
-                url=str(url),
-                callback=self.parse_detail
-            )
+        return scrapy.Request(
+            url=str(url),
+            callback=self.parse_detail
+        )
 
     def parse_detail(self, response):
         try:
@@ -84,7 +78,7 @@ class __ProjectNamecapitalize__SlaveSpider(RedisSpider):
                 if uuid:
                     file_group_uuids.append(uuid)
             """    *************提取帖子的信息模块****************     """
-            contentItem = __ProjectNamecapitalize__DetailItem()
+            contentItem = __ProjectNamecapitalize__SlavePostItem()
             contentItem["publish_time"] = post_date
 
             # 转发数
@@ -153,7 +147,7 @@ class __ProjectNamecapitalize__SlaveSpider(RedisSpider):
     def parse_comment(self, response):
         comments = response.xpath("//div[@class='c'][starts-with(@id,'C_')]")
         for cmt in comments:
-            commentItem = CommentItem()
+            commentItem = __ProjectNamecapitalize__SlaveCommentItem()
             commentItem["content_uuid"] = cmt.xpath("@id").extract_first()
             commentItem["post_url"] = response.meta.get("post_url")
             name = cmt.xpath("a[1]/text()").extract_first()
@@ -183,7 +177,7 @@ class __ProjectNamecapitalize__SlaveSpider(RedisSpider):
             yield commentItem
         page = response.xpath("//div[@id='pagelist']//a[contains(text(),'下页')]/@href").extract_first()
         if page:
-            yield Request(
+            yield scrapy.Request(
                 url=unify_url(response, page),
                 headers=self.headers,
                 callback=self.parse_comment,
