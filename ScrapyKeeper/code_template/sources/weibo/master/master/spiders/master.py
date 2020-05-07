@@ -5,11 +5,13 @@ import json
 import scrapy
 import logging
 from ..utils.tools import *
+from ..mysql_db.operate import firstCrawl
 
 
-class __ProjectNamecapitalize__Spider(scrapy.Spider):
+
+class __ProjectNamecapitalize__MasterSpider(scrapy.Spider):
     # 爬虫名
-    name = "{{project_name}}_master_spider"
+    name = "{{project_name}}_spider"
     url = "{{start_url}}"
     handle_httpstatus_list = [301, 302]
     login_headers = {
@@ -39,9 +41,8 @@ class __ProjectNamecapitalize__Spider(scrapy.Spider):
         "upgrade-insecure-requests": "1",
         "user-agent": "Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/81.0.4044.129 Safari/537.36"
     }
-    currentDate = int(time.time())
+    currentDate = datetime.datetime.now().strftime('%Y-%m-%d')
     url_login = "https://passport.weibo.cn/sso/login"
-    firstCrawl = True
 
     def start_requests(self):
         """
@@ -92,7 +93,7 @@ class __ProjectNamecapitalize__Spider(scrapy.Spider):
         totalPageList = response.xpath("//div[@id='pagelist']//text()").extract()
         totalPage = extract_total_page(totalPageList)
         if totalPage:
-            for page in range(1, totalPage):
+            for page in range(1, int(totalPage)):
                 yield scrapy.Request(
                     url=response.url + "?page={}".format(page),
                     headers=self.headers,
@@ -112,16 +113,14 @@ class __ProjectNamecapitalize__Spider(scrapy.Spider):
             date = date.split("来自")[0].strip()
             # 时间转成字符串
             date = time_fix(date)
-            # 转成时间戳
-            date = dateStr2DateStamp(date)
             # 如果首次采集， 则进行全量采集， 否则只是采集当天数据
             if firstCrawl:
-                item = {{project_name_capitalize}}
+                item = __ProjectNamecapitalize__MasterItem()
                 item['url'] = detail_url
                 yield item
             else:
-                if self.currentDate - date < 24*3700:
-                    item = {{project_name_capitalize}}
+                if self.currentDate == date.split(" ")[0]:
+                    item = __ProjectNamecapitalize__MasterItem()
                     item['url'] = detail_url
                     yield item
                 else:

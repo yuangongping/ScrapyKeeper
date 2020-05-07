@@ -6,8 +6,8 @@ NEWSPIDER_MODULE = '{{project_name}}.spiders'
 
 ROBOTSTXT_OBEY = False
 
-CONCURRENT_REQUESTS = 1
-DOWNLOAD_DELAY = 1
+CONCURRENT_REQUESTS = 8
+# DOWNLOAD_DELAY = 1
 
 DOWNLOADER_MIDDLEWARES = {
    # 'master.middlewares.UserAgent': 1,
@@ -15,7 +15,7 @@ DOWNLOADER_MIDDLEWARES = {
 }
 
 ITEM_PIPELINES = {
-   '{{project_name}}.pipelines.__ProjectNamecapitalize__Pipeline': 300,
+   '{{project_name}}.pipelines.__ProjectNamecapitalize__MasterPipeline': 300,
 }
 
 # scrapy-redis 配置
@@ -28,6 +28,7 @@ BLOOMFILTER_HASH_NUMBER = 6
 # # Bloom Filter的bit5数，默认30，2^30 = 10亿位=10亿/8 字节=128MB空间，去重量级1亿
 BLOOMFILTER_BIT = 25
 SCHEDULER = "scrapy_redis_bloomfilter.scheduler.Scheduler"
+SCHEDULER_DUPEFILTER_KEY = '{{root_project_name}}:dupefilter'  # 去重规则，在redis中保存时对应的key
 
 
 

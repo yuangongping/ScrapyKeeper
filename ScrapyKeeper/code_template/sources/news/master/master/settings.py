@@ -15,7 +15,7 @@ DOWNLOADER_MIDDLEWARES = {
 }
 
 ITEM_PIPELINES = {
-   '{{project_name}}.pipelines.__ProjectNamecapitalize__Pipeline': 300,
+   '{{project_name}}.pipelines.__ProjectNamecapitalize__MasterPipeline': 300,
 }
 
 # scrapy-redis 配置

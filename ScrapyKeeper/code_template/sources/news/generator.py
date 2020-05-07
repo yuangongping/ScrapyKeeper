@@ -31,13 +31,20 @@ def generate(project_name: str, start_url: str, name_zh: str):
             if source_file.endswith(".pyc"):
                 continue
             abs_dest_dir = root.replace(source_tmpl_dir, dest_proj_dir)
+            abs_dest_dir = abs_dest_dir.replace("master", project_name + "_master").replace("slave", project_name + "_slave")
             mkdir(abs_dest_dir)
             dest_file = '{}/{}'.format(abs_dest_dir, file)
-
             content = read_file(source_file)
-            content = content.replace("{{project_name}}", project_name)
-            content = content.replace("__ProjectNameCapitalize__", project_name.capitalize())
+            if "master" in dest_file:
+                _project_name = project_name + "_master"
+            else:
+                _project_name = project_name + "_slave"
+
+            content = content.replace("{{project_name}}", _project_name)
+            content = content.replace("__ProjectNamecapitalize__", project_name.capitalize())
+            content = content.replace("{{root_project_name}}", project_name)
             content = content.replace("{{project_name_zh}}", name_zh)
             content = content.replace("{{start_url}}", start_url)
+
 
             write_file(dest_file, content)

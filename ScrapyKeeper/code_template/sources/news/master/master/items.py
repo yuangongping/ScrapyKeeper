@@ -2,5 +2,5 @@
 import scrapy
 
 
-class __ProjectNamecapitalize__Item(scrapy.Item):
+class __ProjectNamecapitalize__MasterItem(scrapy.Item):
     url = scrapy.Field()

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
 from ScrapyKeeper.code_template.sources.news.generator import generate as news_generate
+from ScrapyKeeper.code_template.sources.weibo.generator import generate as sinaweibo_generate
 from ScrapyKeeper.utils.ThreadWithResult import ThreadWithResult
 
 
@@ -11,9 +12,15 @@ class TemplateGenerator(object):
         name_zh = name_zh
         project_name = name_en
         template = template
-        news_generate(
-            project_name=project_name, start_url=url, name_zh=name_zh
-        )
+        if template == "news":
+            news_generate(
+                project_name=project_name, start_url=url, name_zh=name_zh
+            )
+        elif template == "weibo":
+            sinaweibo_generate(
+                project_name=project_name, start_url=url, name_zh=name_zh
+            )
+
 
 
     @classmethod
@@ -60,6 +67,6 @@ class TemplateGenerator(object):
     @classmethod
     def create(cls, url=None, name_en=None, name_zh=None, template=None) -> dict:
         cls.create_scrapy_project(url=url, name_en=name_en, name_zh=name_zh, template=template)
-        return cls.create_egg(template=template, project_name=name_en)
+        # return cls.create_egg(template=template, project_name=name_en)
 
 

@@ -9,11 +9,12 @@ from ..utils.extractor import Extractor
 from ..utils.tools import upload, unify_date
 import requests
 from urllib.parse import urlparse
+import logging
 
 
-class ProjectNamecapitalizeSlaveSpider(RedisSpider):
-    name = "{{project_name}}_slave_spider"
-    redis_key = "{{project_name}}"
+class __ProjectNamecapitalize__SlaveSpider(RedisSpider):
+    name = "{{project_name}}_spider"
+    redis_key = "{{root_project_name}}"
     session = session
     gne_extract = Extractor()
 
@@ -35,37 +36,40 @@ class ProjectNamecapitalizeSlaveSpider(RedisSpider):
             )
 
     def parse(self, response):
-        result = self.gne_extract.extract(response.text)
-        detailItem = __ProjectNamecapitalize__DetailItem()
-        detailItem["title"] = result['title']
-        detailItem["author"] = result['author']
-        detailItem["source"] = "人民网"
+        try:
+            result = self.gne_extract.extract(response.text)
+            detailItem = __ProjectNamecapitalize__SlaveDetailItem()
+            detailItem["title"] = result['title']
+            detailItem["author"] = result['author']
+            detailItem["source"] = "人民网"
 
-        detailItem["body"] = result['content']
-        detailItem["type"] = "文稿"
-        detailItem["create_time"] = unify_date(result['publish_time'])
+            detailItem["body"] = result['content']
+            detailItem["type"] = "文稿"
+            detailItem["create_time"] = unify_date(result['publish_time'])
 
-        detailItem["url"] = response.url
-        "上传至文件系统后返回的uuid"
-        uuid_list = []
-        img_urls = result['images']
-        imgs_size = 0
-        for img_url in img_urls:
-            img_url = response.urljoin(img_url)
-            img_body = requests.get(url=img_url).content  # 请求附件url
-            imgs_size += int(len(img_body) / 1024) # 单位kb
-            uuid = upload(response.urljoin(img_body))
-            if uuid:
-                uuid_list.append(uuid)
+            detailItem["url"] = response.url
+            "上传至文件系统后返回的uuid"
+            uuid_list = []
+            img_urls = result['images']
+            imgs_size = 0
+            for img_url in img_urls:
+                img_url = response.urljoin(img_url)
+                img_body = requests.get(url=img_url).content  # 请求附件url
+                imgs_size += int(len(img_body) / 1024) # 单位kb
+                uuid = upload(response.urljoin(img_body))
+                if uuid:
+                    uuid_list.append(uuid)
 
-        detailItem["file_size"] = imgs_size
-        detailItem["file_group"] = json.dumps(uuid_list)
-        yield detailItem
+            detailItem["file_size"] = imgs_size
+            detailItem["file_group"] = json.dumps(uuid_list)
+            yield detailItem
 
-        all_a = response.xpath("//body//a/@href").extract()
-        for href in all_a:
-            href = response.urljoin(href.strip())
-            if urlparse(href).netloc in href:
-                item = __ProjectNamecapitalize__Item()
-                item['url'] = href
-                yield item
+            all_a = response.xpath("//body//a/@href").extract()
+            for href in all_a:
+                href = response.urljoin(href.strip())
+                if urlparse(href).netloc in href:
+                    item = __ProjectNamecapitalize__SlaveItem()
+                    item['url'] = href
+                    yield item
+        except:
+            logging.info("采集错误！")

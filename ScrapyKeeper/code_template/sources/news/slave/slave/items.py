@@ -2,11 +2,11 @@
 import scrapy
 
 
-class __ProjectNamecapitalize__Item(scrapy.Item):
+class __ProjectNamecapitalize__SlaveItem(scrapy.Item):
     url = scrapy.Field()
 
 
-class __ProjectNamecapitalize__DetailItem(scrapy.Item):
+class __ProjectNamecapitalize__SlaveDetailItem(scrapy.Item):
     title = scrapy.Field()
     keyword = scrapy.Field()
     abstract = scrapy.Field()
