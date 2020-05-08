@@ -13,6 +13,8 @@ from ScrapyKeeper import app
 from ScrapyKeeper.model import db
 from ScrapyKeeper.model.ServerMachine import ServerMachine
 from ScrapyKeeper.model.Project import Project
+from ScrapyKeeper.model.TemplateMange import TemplateMange
+from ScrapyKeeper.model.SendEmail import SendEmail
 
 
 def create_db():
