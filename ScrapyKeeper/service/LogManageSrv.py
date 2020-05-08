@@ -59,7 +59,7 @@ class LogManageSrv(object):
         source = ["project_name", "loglevel", "time", "type", "messages"]
         connection = cls.es_connection()  # 连接数据库
         # 从数据库中提取数据
-        es_query = connection.search(index='_all', body=query_json, _source=source)
+        es_query = connection.search(index='duocaiyun-*', body=query_json, _source=source)
         es_data = es_query['hits']['hits']
         if not es_data:
             return None
@@ -104,7 +104,7 @@ class LogManageSrv(object):
         }
         connection = cls.es_connection()  # 连接数据库
         # 从数据库中提取数据
-        es_data = connection.search(index='_all', body=query_json)
+        es_data = connection.search(index='duocaiyun-*', body=query_json)
         # 获取分组聚合的各项目出现错误的数量
         return es_data['aggregations']['project_group']['buckets']
 
@@ -150,7 +150,7 @@ class LogManageSrv(object):
             #     os.removedirs(path)  # 删除文件夹
 
             # 同时从数据库中删除数据
-            connection.delete_by_query(index='_all', body=query_json)
+            connection.delete_by_query(index='duocaiyun-*', body=query_json)
 
         except Exception as e:
             abort(400, '%s logs delete fail: %s' % (project_name, e))
