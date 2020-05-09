@@ -1,70 +1,21 @@
 <template>
   <div class="app-container">
-    <div class="operate">
-      <div class="select">
-        <span>分类:</span>
-        <el-select v-model="cate" size="mini" placeholder="请选择">
-          <el-option label="全部" value="1"></el-option>
-          <el-option label="网页官网" value="2"></el-option>
-          <el-option label="媒体" value="3"></el-option>
-        </el-select>
-      </div>
-      <div class="select">
-        <span>状态:</span>
-        <el-select v-model="state" size="mini" placeholder="请选择">
-          <el-option label="全部" value="1"></el-option>
-          <el-option label="休眠" value="2"></el-option>
-          <el-option label="运行中" value="3"></el-option>
-        </el-select>
-      </div>
-      <div class="search">
-        <el-input size="mini" v-model="name" placeholder="请输入项目名称">
-          <el-button size="mini" slot="append" type="primary">搜索</el-button>
-        </el-input>
-      </div>
-      <div class="add-project">
-        <el-button
-          round
-          icon="el-icon-plus"
-          size="small"
-          type="primary"
-          @click="addProjectClick"
-        >添加工程</el-button>
-      </div>
-    </div>
-
-    <el-table
-      :data="list"
-      v-loading.body="listLoading"
-      element-loading-text="Loading"
-      border
-      style="width: 100%"
-    >
+    <!-- 筛选、搜索、添加项目 -->
+    <Toolbar @Cate="Cate" @State="State" @Search="Search" @addProject="addProject" />
+    <!-- 表格 -->
+    <el-table :data="list" v-loading.body="listLoading" element-loading-text="Loading" border style="width: 100%">
       <el-table-column label="序号" width="50" type="index" align="center"></el-table-column>
-
-      <el-table-column label="名称">
-        <template slot-scope="scope">{{scope.row.project_alias}}</template>
-      </el-table-column>
-
-      <el-table-column label="分类">
-        <template slot-scope="scope">{{ categoryMapping[scope.row.category] }}</template>
-      </el-table-column>
-
+      <el-table-column label="名称" prop="project_alias"></el-table-column>
+      <el-table-column label="分类" prop="category"></el-table-column>
       <el-table-column label="周期">
         <template >每天**点</template>
       </el-table-column>
-
-      <el-table-column label="发布时间">
-        <template slot-scope="scope">{{scope.row.date_created}}</template>
-      </el-table-column>
+      <el-table-column label="发布时间" prop="date_created"></el-table-column>
       <el-table-column align="center" width="100" label="状态">
         <template slot-scope="scope">{{ scope.row.status | statusMapping }}</template>
       </el-table-column>
       <el-table-column align="center" label="操作">
-        <template>
-          <!-- <svg-icon icon-class="dispatch"></svg-icon>
-          <svg-icon icon-class="edit"></svg-icon>
-          <svg-icon icon-class="del"></svg-icon> -->
+        <template slot-scope="scope">
           <el-button type="text" @click="editeClick(scope.row)">调度</el-button>
           <el-button type="text" @click="editeClick(scope.row)">编辑</el-button>
           <el-button type="text" style="color: red" @click="del_project(scope.row)">删除</el-button>
@@ -99,12 +50,7 @@
       </el-table-column>
       <el-table-column align="center" label="日志">
         <template slot-scope="scope">
-          <span
-            v-if="scope.row.error > 0"
-            style="background-color: #f56c6c;border-radius: 10px;color: #fff; 
-            display: inline-block;font-size: 12px;padding: 0 6px;
-            text-align: center; border: 1px solid #fff;height: 18px;line-height: 18px;cursor: pointer"
-          >{{ scope.row.error | ellipsis }}</span>
+          <span class="error-info" v-if="scope.row.error > 0">{{ scope.row.error | ellipsis }}</span>
           <el-button type="text" @click="ViewLogClick(scope.row.id)">日志详情</el-button>
         </template>
       </el-table-column>
@@ -152,6 +98,7 @@ import EditBaseInfo from "./components/EditBaseInfo";
 import AddProjectDialog from "./components/AddProjectDialog";
 import SchedulerDialog from "./components/SchedulerDialog";
 import LogDialog from "./components/LogDialog";
+import Toolbar from "./components/Toolbar"
 
 export default {
   name: "project",
@@ -159,21 +106,11 @@ export default {
     EditBaseInfo,
     AddProjectDialog,
     SchedulerDialog,
-    LogDialog
+    LogDialog,
+    Toolbar
   },
   data() {
     return {
-      query: {
-        page: 1,
-        size: 1,
-        name: '',
-        category: '',
-        status: 1,
-      },
-      cate: "1",
-      state: "1",
-      time: "1",
-      name: '',
       categoryMapping: {
         news: "网页官网"
       },
@@ -221,6 +158,19 @@ export default {
     }
   },
   methods: {
+    //根据分类进行筛选
+    Cate(value) {
+      console.log('aaaa')
+      console.log(value,'分类筛选')
+    },
+    //根据状态筛选
+    State(value) {
+      console.log(value, '状态筛选')
+    },
+    //搜索项目
+    Search(name) {
+      console.log(name, '搜索')
+    },
     // 翻页函数
     handleCurrentChange(val) {
       this.pageIndex = val;
@@ -261,8 +211,8 @@ export default {
       this.$message.success("删除成功！");
     },
     // 点击添加工程按钮
-    addProjectClick(form) {
-      this.addProjectDialog = true;
+    addProject(add) {
+      this.addProjectDialog = add;
     },
     // 提交添加工程
     async addProjectSubmit(form) {
@@ -272,9 +222,11 @@ export default {
         text: "工程添加中, 该过程可能需要约30s, 请耐心等候！",
         spinner: "el-icon-loading"
       });
-      await apiAddProject(form);
+      const res = await apiAddProject(form);
       loading.close();
-      this.$message.success("添加成功！");
+      if (res) {
+        this.$message.success("添加成功！");
+      }
       this.fetchData();
     },
     // 取消添加工程
@@ -327,34 +279,24 @@ export default {
 
 
 <style lang="scss" scoped>
-.svg-icon{
-  font-size: 28px;
-}
-.operate {
-  padding-bottom: 10px;
-  display: flex;
-  flex-direction: row;
-  background-color: white;
-  padding: 15px;
-  margin-bottom: 10px;
-  border: 1px solid #ebeef5;
-  .select {
-    font-size: 14px;
-    color: gray;
-    padding-right: 25px;
-  }
-  .search {
-    padding-left: 26px;
-    font-size: 13px;
-  }
-  .add-project {
-    margin-left: auto;
-  }
-}
+
 .pagination {
   margin-top: 20px;
 }
 .el-button--text {
   padding: 0px 0px;
+}
+.error-info{
+  background-color: #f56c6c;
+  border-radius: 10px;
+  color: #fff; 
+  display: inline-block;
+  font-size: 12px;
+  padding: 0 6px;
+  text-align: center; 
+  border: 1px solid #fff;
+  height: 18px;
+  line-height: 18px;
+  cursor: pointer;
 }
 </style>

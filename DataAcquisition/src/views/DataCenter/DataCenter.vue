@@ -19,9 +19,9 @@
 </style>
 
 <script>
-import ServerStatus from './components/ServerStatus/index.js'
-import DataOverview from './components/DataOverview/index.js'
-import ProjectData from './components/ProjectData/index.js'
+import ServerStatus from './components/ServerStatus/ServerStatus'
+import DataOverview from './components/DataOverview/DataOverview'
+import ProjectData from './components/ProjectData/ProjectData'
 import AllData from './components/AllData/AllData'
 
 import { apiGetStatus, apiGetProjectWeekData } from "@/api/dataCentral"
