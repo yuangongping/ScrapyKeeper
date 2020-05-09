@@ -5,6 +5,7 @@
 # @Software: PyCharm
 # @Author  : Taoz
 # @contact : xie-hong-tao@qq.com
+import datetime
 import time
 import socket
 from typing import Dict, BinaryIO
@@ -57,3 +58,9 @@ class ScrapyAgent(object):
 
     def job_status(self, project_name, job_id):
         return self.scrapyd_api.job_status(project_name, job_id)
+
+# begin = datetime.datetime.now()
+# agent = ScrapyAgent("http://172.16.119.5:6800")
+# with open(r'D:\pythonWorkSpace\flask-projects\ScrapyKeeper\ScrapyKeeper\code_template\target\news\ceershi\ceershi_master\ceershi_master.egg', 'rb') as f:
+#     agent.deploy("dadsadsadsadsadsad", 2342, f)
+# print(datetime.datetime.now() - begin)

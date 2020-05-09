@@ -12,7 +12,7 @@ from sqlalchemy import DateTime, Date, Numeric
 
 from ScrapyKeeper import app
 from sqlalchemy import DateTime, Date, Numeric
-
+import datetime
 db = SQLAlchemy(app, session_options=dict(autocommit=False, autoflush=True))
 db.init_app(app)
 
@@ -29,8 +29,8 @@ class Base(db.Model):
     __abstract__ = True
 
     id = db.Column(db.Integer, primary_key=True)
-    date_created = db.Column(db.DateTime, default=db.func.current_timestamp())
-    date_modified = db.Column(db.DateTime, default=db.func.current_timestamp(),
+    date_created = db.Column(db.DateTime, default=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+    date_modified = db.Column(db.DateTime, default=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                               onupdate=db.func.current_timestamp())
 
     def to_dict(self) -> "dict":

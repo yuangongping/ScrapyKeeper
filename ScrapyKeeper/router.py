@@ -15,6 +15,7 @@ from ScrapyKeeper.controller.DataCentralCtrl import DataCentralCtrl
 from ScrapyKeeper.controller.DataStorageCtrl import DataStorageCtrl
 from ScrapyKeeper.controller.SendEmailCtrl import SendEmailCtrl
 from ScrapyKeeper.controller.TemplateMangeCtrl import TemplateMangeCtrl
+from ScrapyKeeper.controller.StartUrls import StartUrlsCtrl
 
 
 def regist_router():
@@ -27,5 +28,6 @@ def regist_router():
     restful_api.add_resource(DataStorageCtrl, "/data_storage")
     restful_api.add_resource(SendEmailCtrl, "/send_email")
     restful_api.add_resource(TemplateMangeCtrl, "/template")
+    restful_api.add_resource(StartUrlsCtrl, "/start_urls")
 
 

@@ -2,11 +2,15 @@
 from ..items import __ProjectNamecapitalize__MasterItem
 from scrapy.spiders.crawl import Rule, CrawlSpider
 from scrapy.linkextractors import LinkExtractor
+import requests
+import json
 
 
 class __ProjectNamecapitalize__MasterSpider(CrawlSpider):
     name = "{{project_name}}_spider"
-    start_urls = ["{{start_url}}"]
+    project_name = "{{root_project_name}}"
+    urls = requests.get("http://127.0.0.1:5060/start_urls?status={}".format(project_name)).text
+    start_urls = json.loads(urls)["data"]
 
     url_prefix = '.'.join(start_urls[0].split('.')[1:])
 
