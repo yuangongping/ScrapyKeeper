@@ -7,18 +7,17 @@ from ScrapyKeeper.utils.ThreadWithResult import ThreadWithResult
 
 class TemplateGenerator(object):
     @classmethod
-    def create_scrapy_project(cls, url=None, name_en=None, name_zh=None, template=None) -> dict:
-        url = url
+    def create_scrapy_project(cls,name_en=None, name_zh=None, template=None) -> dict:
         name_zh = name_zh
         project_name = name_en
         template = template
         if template == "news":
             news_generate(
-                project_name=project_name, start_url=url, name_zh=name_zh
+                project_name=project_name, name_zh=name_zh
             )
         elif template == "weibo":
             sinaweibo_generate(
-                project_name=project_name, start_url=url, name_zh=name_zh
+                project_name=project_name, name_zh=name_zh
             )
 
 
@@ -65,8 +64,8 @@ class TemplateGenerator(object):
             return None
 
     @classmethod
-    def create(cls, url=None, name_en=None, name_zh=None, template=None) -> dict:
-        cls.create_scrapy_project(url=url, name_en=name_en, name_zh=name_zh, template=template)
+    def create(cls, name_en=None, name_zh=None, template=None) -> dict:
+        cls.create_scrapy_project(name_en=name_en, name_zh=name_zh, template=template)
         # return cls.create_egg(template=template, project_name=name_en)
 
 

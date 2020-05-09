@@ -41,7 +41,7 @@ class __ProjectNamecapitalize__SlaveSpider(RedisSpider):
             detailItem = __ProjectNamecapitalize__SlaveDetailItem()
             detailItem["title"] = result['title']
             detailItem["author"] = result['author']
-            detailItem["source"] = "人民网"
+            detailItem["source"] = "{{name_zh}}"
 
             detailItem["body"] = result['content']
             detailItem["type"] = "文稿"

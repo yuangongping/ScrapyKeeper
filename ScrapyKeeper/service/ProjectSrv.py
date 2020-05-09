@@ -18,6 +18,7 @@ from ScrapyKeeper.model.Spider import Spider, db
 from ScrapyKeeper.utils.scrapy_generator import TemplateGenerator
 from ScrapyKeeper.utils.ThreadWithResult import ThreadWithResult
 from ScrapyKeeper.service.LogManageSrv import LogManageSrv
+from ScrapyKeeper.model.TemplateMange import TemplateMange
 
 
 class ProjectSrv(object):
@@ -30,21 +31,20 @@ class ProjectSrv(object):
         self.slave_agents = [ScrapyAgent(url) for url in slave_urls]
 
     def add_project(self, args: dict):
-        url = args.get('url')
-        name_zh = args.get('project_alias')
         template = args.get('category')
+        name_zh = args.get('project_alias')
         name_zh = re.findall("[\u4e00-\u9fa5]+", name_zh)
         if name_zh:
             name_zh = ''.join(name_zh)
         else:
             abort(400, message="请输入中文的项目名！")
-
         pinyin = Pinyin()
         name_en = pinyin.get_pinyin(name_zh)
         name_en = ''.join(name_en.split("-"))
         egg_path = TemplateGenerator.create(
-            url=url, name_en=name_en,
-            name_zh=name_zh, template=template
+            name_en=name_en,
+            name_zh=name_zh,
+            template=template
         )
         # if egg_path and egg_path.get("slave") and egg_path.get("master"):
         #     deploy_status = self.deploy(

@@ -1,4 +1,5 @@
 import os
+import json
 
 
 def read_file(path):
@@ -44,7 +45,7 @@ def generate(project_name: str, start_url: str, name_zh: str):
             content = content.replace("__ProjectNamecapitalize__", project_name.capitalize())
             content = content.replace("{{root_project_name}}", project_name)
             content = content.replace("{{project_name_zh}}", name_zh)
-            content = content.replace("{{start_url}}", start_url)
+            content = content.replace("{{start_url}}", json.dumps(start_url))
 
             write_file(dest_file, content)
 

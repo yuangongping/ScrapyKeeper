@@ -1,4 +1,5 @@
 import os
+import json
 
 
 def read_file(path):
@@ -16,7 +17,7 @@ def mkdir(dir):
         os.mkdir(dir)
 
 
-def generate(project_name: str, start_url: str, name_zh: str):
+def generate(project_name: str, name_zh: str):
     code_root_path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
     template = 'news'
     source_tmpl_dir = '{}/{}/{}'.format(code_root_path, 'sources', template)
@@ -44,7 +45,5 @@ def generate(project_name: str, start_url: str, name_zh: str):
             content = content.replace("__ProjectNamecapitalize__", project_name.capitalize())
             content = content.replace("{{root_project_name}}", project_name)
             content = content.replace("{{project_name_zh}}", name_zh)
-            content = content.replace("{{start_url}}", start_url)
-
 
             write_file(dest_file, content)

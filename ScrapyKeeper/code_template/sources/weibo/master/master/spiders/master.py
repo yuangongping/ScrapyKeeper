@@ -6,13 +6,13 @@ import scrapy
 import logging
 from ..utils.tools import *
 from ..mysql_db.operate import firstCrawl
+import requests
 
 
 
 class __ProjectNamecapitalize__MasterSpider(scrapy.Spider):
     # 爬虫名
     name = "{{project_name}}_spider"
-    url = "{{start_url}}"
     handle_httpstatus_list = [301, 302]
     login_headers = {
         "Accept": "*/*",
@@ -43,6 +43,10 @@ class __ProjectNamecapitalize__MasterSpider(scrapy.Spider):
     }
     currentDate = datetime.datetime.now().strftime('%Y-%m-%d')
     url_login = "https://passport.weibo.cn/sso/login"
+
+    project_name = "{{root_project_name}}"
+    urls = requests.get("http://127.0.0.1:5060/start_urls?status={}".format(project_name)).text
+    urls = json.loads(urls)["data"]
 
     def start_requests(self):
         """
@@ -79,12 +83,13 @@ class __ProjectNamecapitalize__MasterSpider(scrapy.Spider):
         json_res = json.loads(response.text)
         if json_res["retcode"] == 20000000:
             source = "project_alias"
-            yield scrapy.Request(
-                url=self.url,
-                headers=self.headers,
-                callback=self.parse_page,
-                dont_filter=True
-            )
+            for url in self.urls:
+                yield scrapy.Request(
+                    url=url,
+                    headers=self.headers,
+                    callback=self.parse_page,
+                    dont_filter=True
+                )
         else:
             logging.error("登录失败！")
 
