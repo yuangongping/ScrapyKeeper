@@ -14,7 +14,7 @@ def write_file(path, content):
 
 def mkdir(dir):
     if not os.path.exists(dir):
-        os.mkdir(dir)
+        os.makedirs(dir)
 
 
 def generate(*args, **kwargs):

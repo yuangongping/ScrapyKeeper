@@ -9,9 +9,9 @@ from typing import List
 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import DateTime, Date, Numeric
-
+import base64
 from ScrapyKeeper import app
-from sqlalchemy import DateTime, Date, Numeric
+from sqlalchemy import DateTime, Date, Numeric, LargeBinary
 import datetime
 db = SQLAlchemy(app, session_options=dict(autocommit=False, autoflush=True))
 db.init_app(app)
@@ -43,6 +43,9 @@ class Base(db.Model):
                 value = value.strftime('%Y-%m-%d %H:%M:%S')
             elif isinstance(column.type, Numeric):
                 value = float(value)
+            elif isinstance(column.type, LargeBinary):
+                value = str(base64.b64encode(value))
+                value = value.replace("b'", '').replace("='", "=")
             dic[column.name] = value
         return dic
 

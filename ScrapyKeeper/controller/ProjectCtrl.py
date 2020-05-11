@@ -9,7 +9,10 @@ class ProjectCtrl(Resource):
     def get(self):
         parser = reqparse.RequestParser()
         parser.add_argument('page_index', required=True, type=int)
-        parser.add_argument('page_szie', required=True, type=int)
+        parser.add_argument('page_size', required=True, type=int)
+        parser.add_argument('category', type=str)
+        parser.add_argument('status', type=str)
+        parser.add_argument('project_name_zh', type=str)
         args = parser.parse_args(strict=True)
         projectSrv = ProjectSrv()
         data = projectSrv.get_all_projects(args=args)
@@ -19,10 +22,8 @@ class ProjectCtrl(Resource):
         # TODO 模板部署和普通部署分开
         parser = reqparse.RequestParser()
         parser.add_argument('project_name_zh', required=True, type=str)
-        parser.add_argument('url', required=True, type=str)
         parser.add_argument('template', required=True, type=str)
         args = parser.parse_args()
-
         tmpl = args.pop('template')
         projectSrv = ProjectSrv()
         data = projectSrv.add_project(tmpl_name=tmpl, tmpl_args=args)

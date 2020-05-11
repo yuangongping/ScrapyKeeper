@@ -18,7 +18,11 @@ class Project(Base):
     category = db.Column(db.String(255))             # 分类
     is_msd = db.Column(db.SmallInteger)              # 是否是主从分布式爬虫 0 单机爬虫 1 分布式爬虫
     status = db.Column(db.String(50))                # 运行状态，运行中或则休眠
+    input_value = db.Column(db.Text)          # 爬虫入口参数
+    config = db.Column(db.Text)          # 数据库配置
+
 
     @classmethod
     def find_by_name(cls, name) -> 'Project':
         return cls.query.filter(cls.project_name == name).first()
+
