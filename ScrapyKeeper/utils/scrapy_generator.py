@@ -1,26 +1,16 @@
 # -*- coding: utf-8 -*-
 import os
-from ScrapyKeeper.code_template.sources.news.generator import generate as news_generate
-from ScrapyKeeper.code_template.sources.weibo.generator import generate as sinaweibo_generate
 from ScrapyKeeper.utils.ThreadWithResult import ThreadWithResult
+import imp
+import time
 
 
 class TemplateGenerator(object):
     @classmethod
-    def create_scrapy_project(cls,name_en=None, name_zh=None, template=None) -> dict:
-        name_zh = name_zh
-        project_name = name_en
-        template = template
-        if template == "news":
-            news_generate(
-                project_name=project_name, name_zh=name_zh
-            )
-        elif template == "weibo":
-            sinaweibo_generate(
-                project_name=project_name, name_zh=name_zh
-            )
-
-
+    def create_scrapy_project(cls, name_en=None, name_zh=None, template=None) -> dict:
+        moudele_path = os.path.dirname(os.path.dirname(__file__)) + '/code_template/sources/{}/generator.py'.format(template)
+        generate = imp.load_source("dasdsadsadsa", moudele_path)
+        generate.generate(project_name=name_en, name_zh=name_zh)
 
     @classmethod
     def exec_egg_cli(cls, root_path, template, project_name, is_master):
@@ -66,6 +56,6 @@ class TemplateGenerator(object):
     @classmethod
     def create(cls, name_en=None, name_zh=None, template=None) -> dict:
         cls.create_scrapy_project(name_en=name_en, name_zh=name_zh, template=template)
-        # return cls.create_egg(template=template, project_name=name_en)
+        return cls.create_egg(template=template, project_name=name_en)
 
 

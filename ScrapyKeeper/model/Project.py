@@ -14,7 +14,9 @@ class Project(Base):
     applicant = db.Column(db.String(100))            # 申请人
     developers = db.Column(db.String(100))           # 项目的开发者
     for_project = db.Column(db.String(100))          # 提出需求的项目
-    project_alias = db.Column(db.String(100))        # 项目的备注
+    project_name_zh = db.Column(db.String(100))        # 项目的备注
     category = db.Column(db.String(255))             # 分类
     is_msd = db.Column(db.SmallInteger)              # 是否是主从分布式爬虫 0 单机爬虫 1 分布式爬虫
     status = db.Column(db.String(50))                # 运行状态，运行中或则休眠
+    input_value = db.Column(db.Text)          # 爬虫入口参数
+    config = db.Column(db.Text)          # 数据库配置

@@ -19,6 +19,7 @@ from ScrapyKeeper.utils.scrapy_generator import TemplateGenerator
 from ScrapyKeeper.utils.ThreadWithResult import ThreadWithResult
 from ScrapyKeeper.service.LogManageSrv import LogManageSrv
 from ScrapyKeeper.model.TemplateMange import TemplateMange
+from sqlalchemy import and_
 
 
 class ProjectSrv(object):
@@ -61,26 +62,43 @@ class ProjectSrv(object):
         return Project.save(dic=args)
 
     def get_all_projects(self, args: dict):
-        self.update_all_spider_running_status()
-        projects = Project.get(page_index=args.get("page_index"),
-                               page_size=args.get("page_size"))
+        # self.update_all_spider_running_status()
+        exp_list = []
+        if args.get("project_name_zh"):
+            words = args.get("project_name_zh").split(' ')
+            for word in words:
+                exp_list.append(Project.project_name_zh.like('%{}%'.format(word)))
+        if args.get("status"):
+            exp_list.append(Project.status == args.get("status"))
+        if args.get("category"):
+            exp_list.append(Project.category == args.get("category"))
+        order_exp = Project.date_created.desc()
+        if len(exp_list) > 0:
+            filter_exp = and_(*exp_list)
+            pagination = Project.query.filter(filter_exp).order_by(order_exp).paginate(
+                args.get("page_index"), args.get("page_szie"), error_out=False)
+        else:
+            pagination = Project.query.order_by(order_exp).paginate(args.get("page_index"), args.get("page_szie"), error_out=False)
+        projects = [dataset.to_dict() for dataset in pagination.items]
+        for index, project in enumerate(projects):
+            projects[index]["time"] = "12点"
         log_error_list = LogManageSrv.log_count()
-        for index, project in enumerate(projects.get("data")):
-            spider = Spider.query.filter_by(project_id=project.get("id"), type="slave").first()
-            status = "pending"
-            for slave_agent in self.slave_agents:
-                if slave_agent.server_url == spider.address:
-                    status = slave_agent.job_status(
-                        spider.project_name,
-                        spider.job_id
-                    )
-                    break
-            projects["data"][index]["status"] = status
-            projects["data"][index]["error"] = 0
-            for log_err in log_error_list:
-                if project["project_name"] in log_err["key"]:
-                    projects["data"][index]["error"] = log_err["doc_count"]
-        return projects
+        # for index, project in enumerate(projects):
+        #     spider = Spider.query.filter_by(project_id=project.get("id"), type="slave").first()
+        #     status = "pending"
+        #     for slave_agent in self.slave_agents:
+        #         if slave_agent.server_url == spider.address:
+        #             status = slave_agent.job_status(
+        #                 spider.project_name,
+        #                 spider.job_id
+        #             )
+        #             break
+        #     projects[index]["status"] = status
+        #     projects[index]["error"] = 0
+        #     for log_err in log_error_list:
+        #         if project["project_name"] in log_err["key"]:
+        #             projects[index]["error"] = log_err["doc_count"]
+        return {"total": pagination.total, "data": projects}
 
     def del_projects(self, args: dict):
         # 删除srcapyd主服务器的指定工程下的所有版本
