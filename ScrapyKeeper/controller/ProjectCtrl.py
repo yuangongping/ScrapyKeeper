@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from flask import request
 from flask_restful import Resource, reqparse
 from ScrapyKeeper.service.ProjectSrv import ProjectSrv
 from ScrapyKeeper.utils.format_result import success_res, error_res
@@ -18,18 +19,20 @@ class ProjectCtrl(Resource):
         return success_res(data)
 
     def post(self):
+        # TODO 模板部署和普通部署分开
         parser = reqparse.RequestParser()
-        parser.add_argument('project_alias', required=True, type=str)
-        parser.add_argument('category', required=True, type=str)
-        args = parser.parse_args(strict=True)
+        parser.add_argument('project_name_zh', required=True, type=str)
+        parser.add_argument('template', required=True, type=str)
+        args = parser.parse_args()
+        tmpl = args.pop('template')
         projectSrv = ProjectSrv()
-        data = projectSrv.add_project(args=args)
+        data = projectSrv.add_project(tmpl_name=tmpl, tmpl_args=args)
         return success_res(data)
 
     def put(self):
         parser = reqparse.RequestParser()
         parser.add_argument('id', required=True, type=int)
-        parser.add_argument('project_alias', required=True, type=str)
+        parser.add_argument('project_name_zh', required=True, type=str)
         parser.add_argument('category', required=True, type=str)
         parser.add_argument('is_msd', required=True, type=int)
         args = parser.parse_args(strict=True)

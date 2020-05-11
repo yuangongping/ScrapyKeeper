@@ -59,23 +59,19 @@ class Base(db.Model):
 
     @classmethod
     def save(cls, dic: dict) -> "Dict or None":
-        try:
-            if 'id' in dic:
-                item = cls.query.filter(cls.id == dic['id']).first()
-                if item is None:
-                    raise ValueError('Table %s has no data where id %s' % (cls.__table__, dic['id']))
-                else:
-                    item.set(dic)
-                    dic = item.to_dict()
+        if 'id' in dic:
+            item = cls.query.filter(cls.id == dic['id']).first()
+            if item is None:
+                raise ValueError('Table %s has no data where id %s' % (cls.__table__, dic['id']))
             else:
-                new_one = cls()
-                new_one.set(dic)
-                db.session.add(new_one)
-            db.session.commit()
-            return "添加成功"
-        except:
-            db.session.rollback()
-            return None
+                item.set(dic)
+                dic = item.to_dict()
+        else:
+            new_one = cls()
+            new_one.set(dic)
+            db.session.add(new_one)
+        db.session.commit()
+        return dic
 
     @classmethod
     def delete(cls, filters: dict) -> bool:
@@ -96,7 +92,7 @@ class Base(db.Model):
         return [item.to_dict() for item in data] if _to_dict else data
 
     @classmethod
-    def get(cls, page_index, page_size) -> "List":
+    def get(cls, page_index, page_size) -> dict:
         pagination = cls.query.paginate(
             page=page_index, per_page=page_size, error_out=False)
         res = {

@@ -45,11 +45,12 @@ class ScrapyAgent(object):
         return self.scrapyd_api.cancel(project_name, job_id)
 
     def deploy(self, project_name: str, version: int, egg_byte: BinaryIO) -> "Dict or bool":
+        print('-----------------------  ', project_name, version, egg_byte)
         spider_num = self.scrapyd_api.add_version(project_name, version, egg_byte)
         return {
-            'project': project_name,
+            'project_name': project_name,
             'version': version,
-            'spiders': spider_num,
+            'spider_num': spider_num,
         } if spider_num else False
 
     def log_url(self, project_name, spider_name, job_id):
@@ -58,9 +59,3 @@ class ScrapyAgent(object):
 
     def job_status(self, project_name, job_id):
         return self.scrapyd_api.job_status(project_name, job_id)
-
-# begin = datetime.datetime.now()
-# agent = ScrapyAgent("http://172.16.119.5:6800")
-# with open(r'D:\pythonWorkSpace\flask-projects\ScrapyKeeper\ScrapyKeeper\code_template\target\news\ceershi\ceershi_master\ceershi_master.egg', 'rb') as f:
-#     agent.deploy("dadsadsadsadsadsad", 2342, f)
-# print(datetime.datetime.now() - begin)
