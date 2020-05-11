@@ -15,7 +15,7 @@ from ScrapyKeeper.agent.ScrapyAgent import ScrapyAgent
 from ScrapyKeeper.model.ServerMachine import ServerMachine
 from ScrapyKeeper.model.Project import Project
 from ScrapyKeeper.model.Spider import Spider, db
-from ScrapyKeeper.utils.scrapy_generator import TemplateGenerator
+from ScrapyKeeper.code_template.ScrapyGenerator import ScrapyGenerator
 from ScrapyKeeper.utils.ThreadWithResult import ThreadWithResult
 from ScrapyKeeper.service.LogManageSrv import LogManageSrv
 from ScrapyKeeper.model.TemplateMange import TemplateMange
@@ -30,32 +30,45 @@ class ProjectSrv(object):
         self.master_agent = ScrapyAgent(master_url)
         self.slave_agents = [ScrapyAgent(url) for url in slave_urls]
 
-    def add_project(self, args: dict):
-        template = args.get('category')
-        name_zh = args.get('project_alias')
-        name_zh = re.findall("[\u4e00-\u9fa5]+", name_zh)
-        if name_zh:
-            name_zh = ''.join(name_zh)
-        else:
-            abort(400, message="请输入中文的项目名！")
+    def add_project(self, tmpl_name: str, tmpl_args: dict):
         pinyin = Pinyin()
-        name_en = pinyin.get_pinyin(name_zh)
-        name_en = ''.join(name_en.split("-"))
-        egg_path = TemplateGenerator.create(
-            name_en=name_en,
-            name_zh=name_zh,
-            template=template
-        )
-        # if egg_path and egg_path.get("slave") and egg_path.get("master"):
-        #     deploy_status = self.deploy(
-        #         project={"is_msd": 1, "project_name": name_en,
-        #              "project_alias": name_zh, "category": template
-        #         },
-        #         egg_bytes_master=open(egg_path.get("master"), "rb"),
-        #         egg_bytes_slave=open(egg_path.get("slave"), "rb")
-        #     )
-        #     if deploy_status:
-        #         self.sync_spiders(args={"project_name": deploy_status.get("project_name")})
+        name_en = pinyin.get_pinyin(tmpl_args['project_name_zh'])
+        tmpl_args['project_name'] = ''.join(name_en.split("-"))
+
+        # TODO: 前端通过中文生成项目英文名并提交，存在相同英文名的时候，提醒用户自己手动修改英文名
+        exist = Project.find_by_name(name_en)
+        if exist:
+            abort(400, message="存在相同的工程名称，请重新命名")
+
+        egg_path = ScrapyGenerator.gen(tmpl_name, **tmpl_args)
+        if egg_path.get('master') is not None:
+            # 分布式
+            if egg_path.get('slave') is not None:
+                deploy_status = self.deploy(
+                    project={"is_msd": 1, "project_name": tmpl_args['project_name'],
+                             "project_name_zh": tmpl_args['project_name_zh'], "template": tmpl_name
+                             },
+                    egg_bytes_master=open(egg_path.get("master"), "rb"),
+                    egg_bytes_slave=open(egg_path.get("slave"), "rb")
+                )
+            # 单机
+            else:
+                deploy_status = self.deploy(
+                    project={"is_msd": 0, "project_name": tmpl_args['project_name'],
+                             "project_name_zh": tmpl_args['project_name_zh'], "template": tmpl_name
+                             },
+                    egg_bytes_master=open(egg_path.get("master"), "rb"),
+                    egg_bytes_slave=None
+                )
+
+            if deploy_status:
+                Project.save({"is_msd": 1, "project_name": tmpl_args['project_name'],
+                             "project_name_zh": tmpl_args['project_name_zh']})
+                self.sync_spiders(tmpl_args['project_name'])
+            else:
+                abort(500, message="部署失败")
+        else:
+            abort(500, message="生成工程失败")
 
     def edit_project(self, args: dict):
         return Project.save(dic=args)
@@ -96,6 +109,7 @@ class ProjectSrv(object):
         return "已删除工程！"
 
     def deploy(self, project: dict, egg_bytes_master: BinaryIO, egg_bytes_slave: BinaryIO = None) -> dict:
+        # TODO dict 参数的代码优化
         if egg_bytes_slave is not None and project['is_msd'] == 1:
             version = int(time.time())
             proj = self.master_agent.deploy(project['project_name'], version, egg_bytes_master)
@@ -113,36 +127,32 @@ class ProjectSrv(object):
                 t.join()
             slaved_res = [t.get_result() for t in threads]
 
-            if proj and any(slaved_res):
-                Project.save(project)
-                return project
-            else:
-                abort(500, message="Deploy Failed")
+            return proj and any(slaved_res)
 
-    def sync_spiders(self, args: dict):
+    def sync_spiders(self, project_name: str):
         # 获取工程id
-        project_instance = Project.query.filter_by(project_name=args.get("project_name")).first()
+        project = Project.find_by_name(project_name)
         # 获取工程下的蜘蛛列表, 然后更新至数据库
-        spider_list = self.master_agent.list_spiders(args.get("project_name"))
+        spider_list = self.master_agent.list_spiders(project_name)
         master_spider_name = spider_list[0] if spider_list else None
         # 更新数据库
         Spider.save({
             "name": master_spider_name,
-            "project_id": project_instance.id,
-            "project_name": project_instance.project_name,
+            "project_id": project.id,
+            "project_name": project.project_name,
             "type": "master",
             "address": self.master_agent.server_url
         })
 
         # 遍历从服务器节点， 当获取到从爬虫名时，跳出循环
         for slave_agent in self.slave_agents:
-            slave_spider_name_list = slave_agent.list_spiders(args.get("project_name"))
+            slave_spider_name_list = slave_agent.list_spiders(project_name)
             slave_spider_name = slave_spider_name_list[0] if slave_spider_name_list else None
             # 更新数据库
             Spider.save({
                 "name": slave_spider_name,
-                "project_id": project_instance.id,
-                "project_name": project_instance.project_name,
+                "project_id": project.id,
+                "project_name": project.project_name,
                 "type": "slave",
                 "address": slave_agent.server_url
             })
