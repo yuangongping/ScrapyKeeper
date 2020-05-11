@@ -16,6 +16,7 @@ class ProjectCtrl(Resource):
         return success_res(data)
 
     def post(self):
+        # TODO 模板部署和普通部署分开
         parser = reqparse.RequestParser()
         parser.add_argument('project_name_zh', required=True, type=str)
         parser.add_argument('url', required=True, type=str)
