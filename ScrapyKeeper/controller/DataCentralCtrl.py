@@ -21,8 +21,6 @@ class DataCentralCtrl(Resource):
         获取近一周的数据入库柱状图数据
         :return:
         """
-        parser = reqparse.RequestParser()
-        args = parser.parse_args(strict=True)
         dataCentralSrv = DataCentralSrv()
         data = dataCentralSrv.get_week_data()
         return success_res(data)

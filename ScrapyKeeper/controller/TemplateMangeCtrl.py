@@ -33,7 +33,7 @@ class TemplateMangeCtrl(Resource):
         data = TemplateMangeSrv.add(obj, tpl_zip, file_name)
         if not data:
             return error_res("存储错误！")
-        return success_res(data)
+        return success_res()
 
     def delete(self):
         """ 删除模板 """
@@ -61,9 +61,4 @@ class TemplateMangeCtrl(Resource):
 
     def get(self):
         """ 列出所有的模板 """
-        parser = reqparse.RequestParser()
-        parser.add_argument('page_index', type=int)
-        parser.add_argument('page_size', type=int)
-        args = parser.parse_args(strict=True)
-        data = TemplateMangeSrv.list(args=args)
-        return success_res(data)
+        return success_res(TemplateMangeSrv.list())
