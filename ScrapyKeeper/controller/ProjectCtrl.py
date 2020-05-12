@@ -27,6 +27,7 @@ class ProjectCtrl(Resource):
         parser.add_argument('tpl_input', required=True, type=str)
         args = parser.parse_args()
         tmpl = args.pop('template')
+        args["category"] = tmpl
         projectSrv = ProjectSrv()
         data = projectSrv.add_project(tmpl_name=tmpl, tmpl_args=args)
         return success_res(data)

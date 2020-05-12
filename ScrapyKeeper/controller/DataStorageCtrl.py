@@ -11,7 +11,7 @@ class DataStorageCtrl(Resource):
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument('project_name', required=True, type=str)
-        parser.add_argument('project_alias', required=True, type=str)
+        parser.add_argument('project_name_zh', required=True, type=str)
         parser.add_argument('num', required=True, type=int)
         parser.add_argument('file_size', required=True, type=int)
         args = parser.parse_args(strict=True)
