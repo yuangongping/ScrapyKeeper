@@ -14,3 +14,5 @@ SQLALCHEMY_POOL_RECYCLE = 30
 
 EMAIL_SENDER = '952838607@qq.com'
 EMAIL_AUTH_CODE = 'vufpldztjxhhbecb'
+
+ES_URL = 'http://172.10.10.31:9200/'  # 存储日志的数据库地址
