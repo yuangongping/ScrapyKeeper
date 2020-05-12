@@ -9,6 +9,6 @@ class RedisCtrl(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('project_name', type=str)
         args = parser.parse_args(strict=True)
-        redisSrv = RedisSrv()
+        redisSrv = RedisSrv(host='172.16.119.6', port=6379)
         data = redisSrv.get(args)
         return success_res(data)

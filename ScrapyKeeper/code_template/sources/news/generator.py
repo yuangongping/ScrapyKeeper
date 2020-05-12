@@ -1,6 +1,6 @@
 import os
 import json
-
+import demjson
 
 def read_file(path):
     with open(path, 'r', encoding="utf-8") as f:
@@ -18,6 +18,7 @@ def mkdir(dir):
 
 
 def generate(*args, **kwargs):
+    tpl_input = demjson.decode(kwargs.get("tpl_input"))
     code_root_path = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
     template = 'news'
     source_tmpl_dir = '{}/{}/{}'.format(code_root_path, 'sources', template)
@@ -44,8 +45,14 @@ def generate(*args, **kwargs):
                 _project_name = kwargs['project_name'] + "_slave"
 
             content = content.replace("{{project_name}}", _project_name)
-            content = content.replace("__ProjectNamecapitalize__", kwargs['project_name'].capitalize())
-            content = content.replace("{{root_project_name}}", kwargs['project_name'])
-            content = content.replace("{{project_name_zh}}", kwargs['project_name_zh'])
-
+            content = content.replace("__ProjectNamecapitalize__", kwargs.get('project_name').capitalize())
+            content = content.replace("{{root_project_name}}", kwargs.get('project_name'))
+            content = content.replace("{{project_name_zh}}", kwargs.get('project_name_zh'))
+            content = content.replace("{{mysql_host}}", tpl_input.get('mysql_host')["value"])
+            content = content.replace("{{mysql_dbname}}", tpl_input.get('mysql_dbname')["value"])
+            content = content.replace("{{mysql_username}}", tpl_input.get('mysql_username')["value"])
+            content = content.replace("{{mysql_password}}", tpl_input.get('mysql_password')["value"])
+            content = content.replace("{{mysql_port}}", str(tpl_input.get('mysql_port')["value"]))
+            content = content.replace("{{redis_host}}", tpl_input.get('redis_host')["value"])
+            content = content.replace("{{redis_port}}", str(tpl_input.get('redis_port')["value"]))
             write_file(dest_file, content)

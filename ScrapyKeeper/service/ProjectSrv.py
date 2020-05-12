@@ -18,7 +18,6 @@ from ScrapyKeeper.model.Spider import Spider, db
 from ScrapyKeeper.code_template.ScrapyGenerator import ScrapyGenerator
 from ScrapyKeeper.utils.ThreadWithResult import ThreadWithResult
 from ScrapyKeeper.service.LogManageSrv import LogManageSrv
-from ScrapyKeeper.model.TemplateMange import TemplateMange
 from sqlalchemy import and_
 
 
@@ -40,7 +39,6 @@ class ProjectSrv(object):
         exist = Project.find_by_name(name_en)
         if exist:
             abort(400, message="存在相同的工程名称，请重新命名")
-
         egg_path = ScrapyGenerator.gen(tmpl_name, **tmpl_args)
         if egg_path.get('master') is not None:
             # 分布式
@@ -63,8 +61,11 @@ class ProjectSrv(object):
                 )
 
             if deploy_status:
-                Project.save({"is_msd": 1, "project_name": tmpl_args['project_name'],
-                             "project_name_zh": tmpl_args['project_name_zh']})
+                Project.save({
+                    "is_msd": 1,
+                    "project_name": tmpl_args['project_name'],
+                    "project_name_zh": tmpl_args['project_name_zh'],
+                    "tpl_input": tmpl_args.get("tpl_input")})
                 self.sync_spiders(tmpl_args['project_name'])
             else:
                 abort(500, message="部署失败")
@@ -85,6 +86,8 @@ class ProjectSrv(object):
             exp_list.append(Project.status == args.get("status"))
         if args.get("category"):
             exp_list.append(Project.category == args.get("category"))
+        if args.get("project_name"):
+            exp_list.append(Project.project_name == args.get("project_name"))
         order_exp = Project.date_created.desc()
         if len(exp_list) > 0:
             filter_exp = and_(*exp_list)

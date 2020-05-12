@@ -17,6 +17,8 @@ from ScrapyKeeper.controller.DataStorageCtrl import DataStorageCtrl
 from ScrapyKeeper.controller.SendEmailCtrl import SendEmailCtrl
 from ScrapyKeeper.controller.TemplateMangeCtrl import TemplateMangeCtrl
 from ScrapyKeeper.controller.StartUrls import StartUrlsCtrl
+from ScrapyKeeper.controller.RedisCtrl import RedisCtrl
+from ScrapyKeeper.controller.DataExampleCtrl import DataExampleCtrl
 
 
 
@@ -32,6 +34,5 @@ def regist_router():
     restful_api.add_resource(TemplateMangeCtrl, "/template")
     restful_api.add_resource(StartUrlsCtrl, "/start_urls")
     restful_api.add_resource(ProjectDataTrendCtrl, "/data_trend")
-
-
-
+    restful_api.add_resource(RedisCtrl, "/redis")
+    restful_api.add_resource(DataExampleCtrl, "/data_example")

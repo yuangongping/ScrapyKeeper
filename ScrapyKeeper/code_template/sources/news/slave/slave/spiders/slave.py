@@ -67,7 +67,7 @@ class __ProjectNamecapitalize__SlaveSpider(RedisSpider):
             all_a = response.xpath("//body//a/@href").extract()
             for href in all_a:
                 href = response.urljoin(href.strip())
-                if urlparse(href).netloc in href:
+                if urlparse(response.url).netloc in href:
                     item = __ProjectNamecapitalize__SlaveItem()
                     item['url'] = href
                     yield item

@@ -14,4 +14,4 @@ class RedisSrv():
         res = ["当前待采集URL队列数量为: {}".format(total)]
         for i in data:
             res.append(str(i))
-        return  res
+        return res
