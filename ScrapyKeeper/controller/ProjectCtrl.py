@@ -35,9 +35,10 @@ class ProjectCtrl(Resource):
     def put(self):
         parser = reqparse.RequestParser()
         parser.add_argument('id', required=True, type=int)
-        parser.add_argument('project_name_zh', required=True, type=str)
-        parser.add_argument('category', required=True, type=str)
-        parser.add_argument('is_msd', required=True, type=int)
+        parser.add_argument('project_name_zh', type=str)
+        parser.add_argument('category', type=str)
+        parser.add_argument('is_msd', type=int)
+        parser.add_argument('tpl_input', type=str)
         args = parser.parse_args(strict=True)
         projectSrv = ProjectSrv()
         data = projectSrv.edit_project(args=args)
