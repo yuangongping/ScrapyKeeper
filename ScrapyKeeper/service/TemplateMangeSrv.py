@@ -92,13 +92,6 @@ class TemplateMangeSrv(object):
         return TemplateMange.save()
 
     @classmethod
-    def get_start_urls(cls, args: dict):
-        objs = TemplateMange.query.filter_by(
-            status=args.get("status")
-        ).all()
-        return [obj.crawl_url for obj in objs]
-
-    @classmethod
     def get_candidate(cls, args: dict):
         objs = TemplateMange.query.filter_by(
             name=args.get("name")
