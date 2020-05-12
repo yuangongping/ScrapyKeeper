@@ -79,7 +79,7 @@ class DataCentralSrv:
         # 获取近七天的日期列表
         days = get_near_ndays()
         # 获取数据更新最新的前N个工程名
-        projects = DataStorage.query.with_entities(DataStorage.project_alias).group_by(DataStorage.project_name).order_by(DataStorage.date_created.desc()).all()
+        projects = DataStorage.query.with_entities(DataStorage.project_name_zh).group_by(DataStorage.project_name).order_by(DataStorage.date_created.desc()).all()
         projects = [item[0] if index % 2 == 0 else "\n"+item[0]
                         for index, item in enumerate(projects[:N])]
         # 遍历日期列表， 查询如当天的所有工程的数据总和

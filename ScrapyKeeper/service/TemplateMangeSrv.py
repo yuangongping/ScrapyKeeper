@@ -16,7 +16,7 @@ class TemplateMangeSrv(object):
         try:
             """ 解压文件首先解压文件，并放置指定目录 """
             root_path = os.path.dirname(os.path.dirname(__file__))
-            path = root_path + "/code_template/zip_temp/{}".format(args.get("tpl_name"))
+            path = root_path + "/code_template/zip_temp/{}".format(args["tpl_name"])
             # 创建文件目录
             if not os.path.exists(path):
                 os.makedirs(path)
@@ -33,19 +33,8 @@ class TemplateMangeSrv(object):
             abort(400, message='数据已经存在')
 
     @classmethod
-    def list(cls, args: dict):
-        try:
-            order_exp = TemplateMange.date_created.desc()
-            pagination = TemplateMange.query.filter().order_by(
-                order_exp).paginate(
-                args.get("page_index"), args.get("page_size"), error_out=False)
-            return {
-                "total": pagination.total,
-                "data": [dataset.to_dict() for dataset in pagination.items]
-            }
-
-        except Exception as e:
-            abort(500, message='Fail to list template')
+    def list(cls):
+        return TemplateMange.all()
 
     @classmethod
     def delete(cls, id: int):

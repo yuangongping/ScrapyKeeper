@@ -8,4 +8,3 @@ __pycache__/
 *.njsproj
 *.sln
 *.db
-ScrapyKeeper/code_template/target/
