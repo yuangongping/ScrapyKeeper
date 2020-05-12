@@ -19,6 +19,7 @@ from ScrapyKeeper.controller.TemplateMangeCtrl import TemplateMangeCtrl
 from ScrapyKeeper.controller.StartUrls import StartUrlsCtrl
 from ScrapyKeeper.controller.RedisCtrl import RedisCtrl
 from ScrapyKeeper.controller.DataExampleCtrl import DataExampleCtrl
+from ScrapyKeeper.controller.TemplateParserCtrl import TemplateParserCtrl
 
 
 
@@ -36,3 +37,4 @@ def regist_router():
     restful_api.add_resource(ProjectDataTrendCtrl, "/data_trend")
     restful_api.add_resource(RedisCtrl, "/redis")
     restful_api.add_resource(DataExampleCtrl, "/data_example")
+    restful_api.add_resource(TemplateParserCtrl, '/template_parser')

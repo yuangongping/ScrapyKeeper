@@ -13,13 +13,11 @@ from werkzeug.utils import secure_filename
 class TemplateMangeSrv(object):
     @classmethod
     def add(cls, args: dict, tpl_zip, file_name):
+        # TODO 后端去做压缩包的检查，并返回给前端
         try:
             """ 解压文件首先解压文件，并放置指定目录 """
             root_path = os.path.dirname(os.path.dirname(__file__))
-            path = root_path + "/code_template/zip_temp/{}".format(args["tpl_name"])
-            # 创建文件目录
-            if not os.path.exists(path):
-                os.makedirs(path)
+            path = root_path + "/code_template/zip_temp/"
             # 保存模板的压缩文件
             with open(path+"/"+file_name, 'wb') as f:
                 f.write(tpl_zip)
@@ -30,6 +28,7 @@ class TemplateMangeSrv(object):
             # 保存数据
             return TemplateMange.save(args)
         except Exception as e:
+            print(e)
             abort(400, message='数据已经存在')
 
     @classmethod
