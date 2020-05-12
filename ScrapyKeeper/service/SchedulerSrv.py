@@ -6,6 +6,9 @@ from ScrapyKeeper.model.Spider import Spider, db
 from ScrapyKeeper.model.Project import Project
 from ScrapyKeeper.model.Scheduler import Scheduler
 from ScrapyKeeper import ram_scheduler
+from ScrapyKeeper.model.JobExecution import JobExecution
+import demjson
+import time
 
 
 class SchedulerSrv(object):
@@ -40,6 +43,7 @@ class SchedulerSrv(object):
             # 通过工程找到对应的爬虫实例
             filters = {"project_id": args.get("id")}
             spiders = Spider.query.filter_by(**filters).all()
+            scrapyd_job_id = []
             for spider in spiders:
                 if spider.type == "master":
                     # 启动主爬虫
@@ -47,6 +51,7 @@ class SchedulerSrv(object):
                         spider.project_name,
                         spider.name
                     )
+                    scrapyd_job_id.append(master_job_id)
                     # 启动成功后， 更新爬虫实例的job_id
                     spider.job_id = master_job_id
                     db.session.commit()
@@ -57,8 +62,14 @@ class SchedulerSrv(object):
                                 spider.project_name,
                                 spider.name
                             )
+                            scrapyd_job_id.append(slave_job_id)
                             spider.job_id = slave_job_id
                             db.session.commit()
+            JobExecution.save({
+                "project_id": args.get("id"),
+                "scrapyd_job_id": demjson.encode(scrapyd_job_id),
+                "scheduler_id": args.get("schedule_id", args.get("id")+"_")
+            })
             return True
         except:
             return None
@@ -96,11 +107,12 @@ class SchedulerSrv(object):
 
     def add_scheduler(self, args: dict):
         try:
+            schedule_id = str(args.get("project_id")) + "_" + str(int(time.time()))
             ram_scheduler.add_job(
                 self.start_up_project,
-                kwargs={"args": {"project_id": args.get("project_id")}},
+                kwargs={"args": {"project_id": args.get("project_id"), "schedule_id": schedule_id}},
                 trigger='cron',
-                id=args.get("project_id"),
+                id=schedule_id,
                 month='{}'.format(args.get("cron_month")),
                 day='{}'.format(args.get("cron_day_of_month")),
                 hour='{}'.format(args.get("cron_hour")),
@@ -110,6 +122,7 @@ class SchedulerSrv(object):
                 misfire_grace_time=60 * 60,
                 coalesce=True
             )
+            print(args)
             Scheduler.save(dic=args)
             return True
         except:

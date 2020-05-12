@@ -91,7 +91,7 @@ class DataCentralSrv:
                                 func.sum(DataStorage.num)
                             ).filter(
                                 func.date_format(DataStorage.date_created, '%Y-%m-%d') == day,
-                                DataStorage.project_alias == project.replace("\n", '')
+                                DataStorage.project_name_zh == project.replace("\n", '')
                             ).all()
                 if num[0][0]:
                     data_num[day].append(int(num[0][0]))

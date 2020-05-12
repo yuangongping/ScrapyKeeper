@@ -7,6 +7,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from flask_restful import abort
 from sqlalchemy import DateTime, Date, Numeric
+import demjson
 
 
 class DataExampleSrv(object):
@@ -28,14 +29,14 @@ class DataExampleSrv(object):
 
     @classmethod
     def data_example(cls, args: dict):
-
-        # try:
-            mysql_url = 'mysql+pymysql://{}:{}@{}:{}/{}'.format(
-                args.get('username'),
-                args.get('password'),
-                args.get('host'),
-                args.get('port'),
-                args.get('dbname')
+        try:
+            mysql_config = demjson.decode(args.get('tpl_input'))
+            mysql_url = 'mysql+pymysql://{}:{}@{}:{}/{}' .format(
+                mysql_config.get('mysql_username')['value'],
+                mysql_config.get('mysql_password')['value'],
+                mysql_config.get('mysql_host')['value'],
+                mysql_config.get('mysql_port')['value'],
+                mysql_config.get('mysql_dbname')['value']
             )
             engine = create_engine(mysql_url)
             mysql_base = automap_base()  # 自动创建类
@@ -48,7 +49,5 @@ class DataExampleSrv(object):
             for data in data_query:
                 data_example.append(cls.to_dict(data))
             return data_example
-        #
-        # except Exception as e:
-        #     abort(500, message='data example query failed')
-
+        except Exception as e:
+            abort(500, message='data example query failed')

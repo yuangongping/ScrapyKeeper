@@ -10,11 +10,7 @@ class DataExampleCtrl(Resource):
     def post(self):
         parser = reqparse.RequestParser()
         parser.add_argument('project_name', required=True, type=str)
-        parser.add_argument('username', required=True, type=str)
-        parser.add_argument('password', required=True, type=str)
-        parser.add_argument('host', required=True, type=str)
-        parser.add_argument('port', required=True, type=str)
-        parser.add_argument('dbname', required=True, type=str)
+        parser.add_argument('tpl_input',  required=True, type=str)
         args = parser.parse_args(strict=True)
         data = DataExampleSrv.data_example(args)
         return success_res(data)

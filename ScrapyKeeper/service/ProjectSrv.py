@@ -6,14 +6,13 @@
 # @Author  : Taoz
 # @contact : xie-hong-tao@qq.com
 import time
-import re
 from typing import BinaryIO
-from flask import Response
 from xpinyin import Pinyin
 from flask_restful import abort
 from ScrapyKeeper.agent.ScrapyAgent import ScrapyAgent
 from ScrapyKeeper.model.ServerMachine import ServerMachine
 from ScrapyKeeper.model.Project import Project
+from ScrapyKeeper.model.Scheduler import Scheduler
 from ScrapyKeeper.model.Spider import Spider, db
 from ScrapyKeeper.code_template.ScrapyGenerator import ScrapyGenerator
 from ScrapyKeeper.utils.ThreadWithResult import ThreadWithResult
@@ -76,7 +75,7 @@ class ProjectSrv(object):
         return Project.save(dic=args)
 
     def get_all_projects(self, args: dict):
-        # self.update_all_spider_running_status()
+        self.update_all_spider_running_status()
         exp_list = []
         if args.get("project_name_zh"):
             words = args.get("project_name_zh").split(' ')
@@ -96,24 +95,25 @@ class ProjectSrv(object):
         else:
             pagination = Project.query.order_by(order_exp).paginate(args.get("page_index"), args.get("page_szie"), error_out=False)
         projects = [dataset.to_dict() for dataset in pagination.items]
-        for index, project in enumerate(projects):
-            projects[index]["time"] = "12点"
         log_error_list = LogManageSrv.log_count()
-        # for index, project in enumerate(projects):
-        #     spider = Spider.query.filter_by(project_id=project.get("id"), type="slave").first()
-        #     status = "pending"
-        #     for slave_agent in self.slave_agents:
-        #         if slave_agent.server_url == spider.address:
-        #             status = slave_agent.job_status(
-        #                 spider.project_name,
-        #                 spider.job_id
-        #             )
-        #             break
-        #     projects[index]["status"] = status
-        #     projects[index]["error"] = 0
-        #     for log_err in log_error_list:
-        #         if project["project_name"] in log_err["key"]:
-        #             projects[index]["error"] = log_err["doc_count"]
+        for index, project in enumerate(projects):
+            spider = Spider.query.filter_by(project_id=project.get("id"), type="slave").first()
+            status = "pending"
+            for slave_agent in self.slave_agents:
+                if slave_agent.server_url == spider.address:
+                    status = slave_agent.job_status(
+                        spider.project_name,
+                        spider.job_id
+                    )
+                    break
+            scheduler = Scheduler.query.filter_by(project_id=project.get("id")).first()
+
+            projects[index]["status"] = status
+            projects[index]["error"] = 0
+            projects[index]["time"] = scheduler.desc if scheduler else "待添加调度"
+            for log_err in log_error_list:
+                if project["project_name"] in log_err["key"]:
+                    projects[index]["error"] = log_err["doc_count"]
         return {"total": pagination.total, "data": projects}
 
     def del_projects(self, args: dict):
