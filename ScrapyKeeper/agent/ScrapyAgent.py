@@ -9,7 +9,7 @@ import datetime
 import time
 import socket
 from typing import Dict, BinaryIO
-
+from flask import current_app
 from scrapyd_api import ScrapydAPI
 
 
@@ -45,8 +45,9 @@ class ScrapyAgent(object):
         return self.scrapyd_api.cancel(project_name, job_id)
 
     def deploy(self, project_name: str, version: int, egg_byte: BinaryIO) -> "Dict or bool":
-        print('-----------------------  ', project_name, version, egg_byte)
+        current_app.logger.info('正在部署项目： %s，版本号： %s  ......' % (project_name, version))
         spider_num = self.scrapyd_api.add_version(project_name, version, egg_byte)
+        current_app.logger.info('完成： %s 项目部署，版本号： %s ！' % (project_name, version))
         return {
             'project_name': project_name,
             'version': version,

@@ -129,26 +129,57 @@ class ProjectSrv(object):
         Spider.delete(filters={"project_id": args.get("id")})
         return "已删除工程！"
 
-    def deploy(self, project: dict, egg_bytes_master: BinaryIO, egg_bytes_slave: BinaryIO = None) -> dict:
+    def distribute_in_multi_thread(self, func: str, master_args: tuple, slave_args: tuple) -> tuple:
+        """ 分布式部署的情况下，用多线程的方式在主从中运行相同的函数 """
+        master_thread = ThreadWithResult(target=getattr(self.master_agent, func), args=master_args)
+        master_thread.start()
+
+        slave_threads = []
+        for agent in self.slave_agents:
+            t = ThreadWithResult(target=getattr(agent, func), args=slave_args)
+            slave_threads.append(t)
+            t.start()
+
+        master_thread.join()
+        [t.join() for t in slave_threads]
+
+        return master_thread.get_result(), [t.get_result() for t in slave_threads]
+
+    # def deploy(self, project: dict, egg_bytes_master: BinaryIO, egg_bytes_slave: BinaryIO = None) -> dict:
+    #     # TODO dict 参数的代码优化
+    #     if egg_bytes_slave is not None and project['is_msd'] == 1:
+    #         version = int(time.time())
+    #         mst_thread = ThreadWithResult(target=self.master_agent.deploy, args=(
+    #             project['project_name'], version, egg_bytes_master
+    #         ))
+    #         mst_thread.start()
+    #
+    #         slv_threads = []
+    #         for agent in self.slave_agents:
+    #             t = ThreadWithResult(target=agent.deploy, args=(
+    #                 project['project_name'],
+    #                 version,
+    #                 egg_bytes_slave
+    #             ))
+    #             slv_threads.append(t)
+    #             t.start()
+    #
+    #         mst_thread.join()
+    #         for t in slv_threads:
+    #             t.join()
+    #         mst_res = mst_thread.get_result()
+    #         slv_res = [t.get_result() for t in slv_threads]
+    #
+    #         return mst_res and any(slv_res)
+
+    def deploy(self, project: dict, egg_bytes_master: BinaryIO, egg_bytes_slave: BinaryIO = None) -> bool:
         # TODO dict 参数的代码优化
         if egg_bytes_slave is not None and project['is_msd'] == 1:
             version = int(time.time())
-            proj = self.master_agent.deploy(project['project_name'], version, egg_bytes_master)
 
-            threads = []
-            for agent in self.slave_agents:
-                t = ThreadWithResult(target=agent.deploy, args=(
-                    project['project_name'],
-                    version,
-                    egg_bytes_slave
-                ))
-                threads.append(t)
-                t.start()
-            for t in threads:
-                t.join()
-            slaved_res = [t.get_result() for t in threads]
-
-            return proj and any(slaved_res)
+            res = self.distribute_in_multi_thread('deplpy', (project['project_name'], version, egg_bytes_master),
+                                            (project['project_name'], version, egg_bytes_slave))
+            return res[0] and any(res[1])
 
     def sync_spiders(self, project_name: str):
         # 获取工程id
