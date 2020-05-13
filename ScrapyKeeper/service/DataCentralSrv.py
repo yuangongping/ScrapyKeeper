@@ -14,7 +14,8 @@ class DataCentralSrv:
         cpu_used = self.get_cpu_state()
         memorystate = self.getMemorystate()
         projectSrv = ProjectSrv()
-        projectSrv.update_all_spider_running_status()
+        # TODO 更新运行率
+        # projectSrv.update_all_spider_running_status()
         project_running_status = projectSrv.statistical_running_status()
         log_errors = LogManageSrv.log_count()
         log_status = {

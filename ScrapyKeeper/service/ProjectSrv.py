@@ -116,7 +116,6 @@ class ProjectSrv(object):
         return Project.save(dic=args)
 
     def get_all_projects(self, args: dict):
-        self.update_all_spider_running_status()
         exp_list = []
         if args.get("project_name_zh"):
             words = args.get("project_name_zh").split(' ')
@@ -134,28 +133,25 @@ class ProjectSrv(object):
             pagination = Project.query.filter(filter_exp).order_by(order_exp).paginate(
                 args.get("page_index"), args.get("page_szie"), error_out=False)
         else:
-            pagination = Project.query.order_by(order_exp).paginate(args.get("page_index"), args.get("page_szie"), error_out=False)
-        projects = [dataset.to_dict() for dataset in pagination.items]
-        log_error_list = LogManageSrv.log_count()
-        for index, project in enumerate(projects):
-            spider = Spider.query.filter_by(project_id=project.get("id"), type="slave").first()
-            status = "pending"
-            for slave_agent in self.slave_agents:
-                if slave_agent.server_url == spider.address:
-                    status = slave_agent.job_status(
-                        spider.project_name,
-                        spider.job_id
-                    )
-                    break
-            scheduler = Scheduler.query.filter_by(project_id=project.get("id")).first()
+            pagination = Project.query.order_by(order_exp).paginate(args.get("page_index"), args.get("page_size"), error_out=False)
 
-            projects[index]["status"] = status
-            projects[index]["error"] = 0
-            projects[index]["time"] = scheduler.desc if scheduler else "待添加调度"
+        projects = pagination.items
+        self.update_spider_status(projects)
+
+        log_error_list = LogManageSrv.log_count()
+        data = []
+        for project in projects:
+            proj = project.to_dict()
+            scheduler = Scheduler.query.filter_by(project_id=project.id).first()
+            proj["error"] = 0
+            proj["time"] = scheduler.desc if scheduler else "待添加调度"
             for log_err in log_error_list:
-                if project["project_name"] in log_err["key"]:
-                    projects[index]["error"] = log_err["doc_count"]
-        return {"total": pagination.total, "data": projects}
+                if proj["project_name"] in log_err["key"]:
+                    proj["error"] = log_err["doc_count"]
+                    break
+            data.append(proj)
+
+        return {"total": pagination.total, "data": data}
 
     def del_projects(self, **kwargs):
         # 删除srcapyd主服务器的指定工程下的所有版本
@@ -211,23 +207,22 @@ class ProjectSrv(object):
                 "address": slave['address']
             })
 
-    def update_all_spider_running_status(self):
-        projects = Project.query.all()
+    def update_spider_status(self, projects: list("Project")):
         for project in projects:
             spiders = Spider.query.filter_by(type="slave", project_id=project.id).all()
-            status = []
+
+            status = None
             for spider in spiders:
                 for slave_agent in self.slave_agents:
                     if slave_agent.server_url == spider.address:
-                        _status = slave_agent.job_status(
+                        status = slave_agent.job_status(
                             spider.project_name,
                             spider.job_id
                         )
-                        status.append(_status)
-            if "running" in status:
-                project.status = "running"
-            else:
-                project.status = "pending"
+                        break
+                if status:
+                    break
+            project.status = status
             db.session.commit()
 
     def statistical_running_status(self):
