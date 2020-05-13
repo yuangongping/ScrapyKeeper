@@ -27,6 +27,7 @@ class ProjectCtrl(Resource):
         parser.add_argument('tpl_input', required=True, type=str)
         args = parser.parse_args()
         tmpl = args.pop('template')
+        args["category"] = tmpl
         projectSrv = ProjectSrv()
         data = projectSrv.add_project(tmpl_name=tmpl, tmpl_args=args)
         return success_res(data)
@@ -34,10 +35,11 @@ class ProjectCtrl(Resource):
     def put(self):
         parser = reqparse.RequestParser()
         parser.add_argument('id', required=True, type=int)
-        parser.add_argument('project_name_zh', required=True, type=str)
-        parser.add_argument('category', required=True, type=str)
-        parser.add_argument('is_msd', required=True, type=int)
-        args = parser.parse_args(strict=True)
+        parser.add_argument('project_name_zh', type=str)
+        parser.add_argument('category', type=str)
+        parser.add_argument('is_msd', type=int)
+        parser.add_argument('tpl_input', type=str)
+        args = parser.parse_args()
         projectSrv = ProjectSrv()
         data = projectSrv.edit_project(args=args)
         return success_res(data)

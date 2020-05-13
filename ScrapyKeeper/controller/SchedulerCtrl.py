@@ -12,6 +12,7 @@ class SchedulerCtrl(Resource):
         """
         parser = reqparse.RequestParser()
         parser.add_argument('id', required=True, type=int)
+        parser.add_argument('run_type', required=True, type=str)
         args = parser.parse_args(strict=True)
         schedulerSrv = SchedulerSrv()
         data = schedulerSrv.start_up_project(args=args)

@@ -5,6 +5,7 @@ import os
 import time
 from elasticsearch import Elasticsearch
 from flask import abort
+from ScrapyKeeper import app
 
 
 class LogManageSrv(object):
@@ -12,7 +13,8 @@ class LogManageSrv(object):
     def es_connection(cls):
         """ 连接elasticsearch数据库 """
         try:
-            es_connection = Elasticsearch(hosts=['http://172.10.10.31:9200/'])
+            es_url = app.config.get('ES_URL')
+            es_connection = Elasticsearch(hosts=[es_url])
             return es_connection
         except Exception as e:
             abort(400, 'Elasticsearch connect fail: %s' % e)

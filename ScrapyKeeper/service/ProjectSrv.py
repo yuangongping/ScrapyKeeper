@@ -6,14 +6,13 @@
 # @Author  : Taoz
 # @contact : xie-hong-tao@qq.com
 import time
-import re
 from typing import BinaryIO
-from flask import Response
 from xpinyin import Pinyin
 from flask_restful import abort
 from ScrapyKeeper.agent.ScrapyAgent import ScrapyAgent
 from ScrapyKeeper.model.ServerMachine import ServerMachine
 from ScrapyKeeper.model.Project import Project
+from ScrapyKeeper.model.Scheduler import Scheduler
 from ScrapyKeeper.model.Spider import Spider, db
 from ScrapyKeeper.code_template.ScrapyGenerator import ScrapyGenerator
 from ScrapyKeeper.utils.ThreadWithResult import ThreadWithResult
@@ -36,7 +35,7 @@ class ProjectSrv(object):
         tmpl_args['project_name'] = ''.join(name_en.split("-"))
 
         # TODO: 前端通过中文生成项目英文名并提交，存在相同英文名的时候，提醒用户自己手动修改英文名
-        exist = Project.find_by_name(name_en)
+        exist = Project.find_by_name(tmpl_args['project_name'])
         if exist:
             abort(400, message="存在相同的工程名称，请重新命名")
         egg_path = ScrapyGenerator.gen(tmpl_name, **tmpl_args)
@@ -76,7 +75,7 @@ class ProjectSrv(object):
         return Project.save(dic=args)
 
     def get_all_projects(self, args: dict):
-        # self.update_all_spider_running_status()
+        self.update_all_spider_running_status()
         exp_list = []
         if args.get("project_name_zh"):
             words = args.get("project_name_zh").split(' ')
@@ -96,24 +95,25 @@ class ProjectSrv(object):
         else:
             pagination = Project.query.order_by(order_exp).paginate(args.get("page_index"), args.get("page_szie"), error_out=False)
         projects = [dataset.to_dict() for dataset in pagination.items]
-        for index, project in enumerate(projects):
-            projects[index]["time"] = "12点"
         log_error_list = LogManageSrv.log_count()
-        # for index, project in enumerate(projects):
-        #     spider = Spider.query.filter_by(project_id=project.get("id"), type="slave").first()
-        #     status = "pending"
-        #     for slave_agent in self.slave_agents:
-        #         if slave_agent.server_url == spider.address:
-        #             status = slave_agent.job_status(
-        #                 spider.project_name,
-        #                 spider.job_id
-        #             )
-        #             break
-        #     projects[index]["status"] = status
-        #     projects[index]["error"] = 0
-        #     for log_err in log_error_list:
-        #         if project["project_name"] in log_err["key"]:
-        #             projects[index]["error"] = log_err["doc_count"]
+        for index, project in enumerate(projects):
+            spider = Spider.query.filter_by(project_id=project.get("id"), type="slave").first()
+            status = "pending"
+            for slave_agent in self.slave_agents:
+                if slave_agent.server_url == spider.address:
+                    status = slave_agent.job_status(
+                        spider.project_name,
+                        spider.job_id
+                    )
+                    break
+            scheduler = Scheduler.query.filter_by(project_id=project.get("id")).first()
+
+            projects[index]["status"] = status
+            projects[index]["error"] = 0
+            projects[index]["time"] = scheduler.desc if scheduler else "待添加调度"
+            for log_err in log_error_list:
+                if project["project_name"] in log_err["key"]:
+                    projects[index]["error"] = log_err["doc_count"]
         return {"total": pagination.total, "data": projects}
 
     def del_projects(self, args: dict):
@@ -145,39 +145,12 @@ class ProjectSrv(object):
 
         return master_thread.get_result(), [t.get_result() for t in slave_threads]
 
-    # def deploy(self, project: dict, egg_bytes_master: BinaryIO, egg_bytes_slave: BinaryIO = None) -> dict:
-    #     # TODO dict 参数的代码优化
-    #     if egg_bytes_slave is not None and project['is_msd'] == 1:
-    #         version = int(time.time())
-    #         mst_thread = ThreadWithResult(target=self.master_agent.deploy, args=(
-    #             project['project_name'], version, egg_bytes_master
-    #         ))
-    #         mst_thread.start()
-    #
-    #         slv_threads = []
-    #         for agent in self.slave_agents:
-    #             t = ThreadWithResult(target=agent.deploy, args=(
-    #                 project['project_name'],
-    #                 version,
-    #                 egg_bytes_slave
-    #             ))
-    #             slv_threads.append(t)
-    #             t.start()
-    #
-    #         mst_thread.join()
-    #         for t in slv_threads:
-    #             t.join()
-    #         mst_res = mst_thread.get_result()
-    #         slv_res = [t.get_result() for t in slv_threads]
-    #
-    #         return mst_res and any(slv_res)
-
     def deploy(self, project: dict, egg_bytes_master: BinaryIO, egg_bytes_slave: BinaryIO = None) -> bool:
         # TODO dict 参数的代码优化
         if egg_bytes_slave is not None and project['is_msd'] == 1:
             version = int(time.time())
 
-            res = self.distribute_in_multi_thread('deplpy', (project['project_name'], version, egg_bytes_master),
+            res = self.distribute_in_multi_thread('deploy', (project['project_name'], version, egg_bytes_master),
                                             (project['project_name'], version, egg_bytes_slave))
             return res[0] and any(res[1])
 
