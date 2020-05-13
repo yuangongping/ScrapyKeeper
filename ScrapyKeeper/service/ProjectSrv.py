@@ -62,6 +62,7 @@ class ProjectSrv(object):
             if deploy_status:
                 Project.save({
                     "is_msd": 1,
+                    "category": tmpl_args["category"],
                     "project_name": tmpl_args['project_name'],
                     "project_name_zh": tmpl_args['project_name_zh'],
                     "tpl_input": tmpl_args.get("tpl_input")})

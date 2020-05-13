@@ -55,7 +55,7 @@ class Base(db.Model):
             if key not in columns:
                 raise KeyError('%s has no column %s' % (self.__table__, key))
             else:
-                if val:
+                if val != '':
                     setattr(self, key, val)
 
     @classmethod
