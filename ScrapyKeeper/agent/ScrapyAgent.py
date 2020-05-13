@@ -38,6 +38,13 @@ class ScrapyAgent(object):
     def list_spiders(self, project_name):
         return self.scrapyd_api.list_spiders(project_name)
 
+    def list_spiders_and_addr(self, project_name):
+        spider_list = self.scrapyd_api.list_spiders(project_name)
+        return {
+            "address": self.server_url,
+            "spider_list": spider_list
+        }
+
     def start_spider(self, project_name, spider_name):
         return self.scrapyd_api.schedule(project_name, spider_name)
 
