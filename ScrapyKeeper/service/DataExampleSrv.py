@@ -44,7 +44,7 @@ class DataExampleSrv(object):
             Session = sessionmaker(bind=engine)  # 绑定引擎
             session = Session()  # 生成session
             table_name = mysql_base.classes[args.get('project_name')]
-            data_query = session.query(table_name).limit(10)
+            data_query = session.query(table_name).all()[-10:]
             data_example = []
             for data in data_query:
                 data_example.append(cls.to_dict(data))

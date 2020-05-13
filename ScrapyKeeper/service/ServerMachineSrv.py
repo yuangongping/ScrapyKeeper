@@ -51,13 +51,13 @@ class ServerMachineSrv(object):
             abort(500, message='Fail to list server machine')
 
     @classmethod
-    def delete(cls, url: str):
+    def delete(cls, id: int):
         """
         功能: 删除服务器的信息
         :return: 成功返回'data': 'success', 失败'data': 'error'
         """
         try:
-            machine = ServerMachine.query.filter_by(url=url).first()
+            machine = ServerMachine.query.filter_by(id=id).first()
             if machine:
                 db.session.delete(machine)
                 db.session.commit()

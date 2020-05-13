@@ -6,6 +6,7 @@ from ScrapyKeeper.model.Project import db
 from ScrapyKeeper.model.DataStorage import DataStorage
 from sqlalchemy import func
 from ScrapyKeeper.utils.date_tools import get_near_ndays
+from ScrapyKeeper import app
 
 
 class DataCentralSrv:
@@ -39,7 +40,9 @@ class DataCentralSrv:
                 "running": project_running_status.get("running")
             },
             "project_error_rate_status": log_status,
-            "dataCount": self.get_all_data_count()
+            "dataCount": self.get_all_data_count(),
+            "data_size": self.get_data_size() + self.get_file_size(),
+            "file_size": self.get_file_size()
         }
         return data
 
@@ -54,14 +57,30 @@ class DataCentralSrv:
         }
 
     def get_all_data_count(self):
+        name = app.config.get("DATASTORAGENAME")
         sql = """SELECT TABLE_SCHEMA, TABLE_NAME, (TABLE_ROWS) FROM
                     information_schema.TABLES
-                    WHERE TABLE_SCHEMA = 'duocaiyunspdier';"""
+                    WHERE TABLE_SCHEMA = '{}';""".format(name)
         all = db.engine.execute(sql)
         count = 0
         for item in all:
             count += item[2]
         return count
+
+    def get_data_size(self):
+        name = app.config.get("DATASTORAGENAME")
+        sql = """select round(sum(DATA_LENGTH / 1024 ), 2) as data
+        from information_schema.TABLES where
+        table_schema = '{}';""".format(name)
+        all = db.engine.execute(sql)
+        data = 0
+        for item in all:
+            data = int(item[0])
+        return data
+
+    def get_file_size(self):
+        data = db.session.query(func.sum(DataStorage.file_size)).scalar()
+        return int(data) if data is not None else 0
 
     def get_week_data(self):
         """

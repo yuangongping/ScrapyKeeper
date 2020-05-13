@@ -39,7 +39,7 @@ class ProjectCtrl(Resource):
         parser.add_argument('category', type=str)
         parser.add_argument('is_msd', type=int)
         parser.add_argument('tpl_input', type=str)
-        args = parser.parse_args(strict=True)
+        args = parser.parse_args()
         projectSrv = ProjectSrv()
         data = projectSrv.edit_project(args=args)
         return success_res(data)
