@@ -20,6 +20,26 @@ from ScrapyKeeper.service.LogManageSrv import LogManageSrv
 from sqlalchemy import and_
 
 
+class DistributeRes(object):
+    def __init__(self):
+        self._master = None
+        self._slaves = []
+
+    def set_master(self, val):
+        self._master = val
+
+    def push_slaves(self, val):
+        self._slaves.append(val)
+
+    @property
+    def master(self):
+        return self._master
+
+    @property
+    def slaves(self):
+        return self._slaves
+
+
 class ProjectSrv(object):
     def __init__(self):
         master_url = ServerMachine.master_url()
@@ -28,6 +48,26 @@ class ProjectSrv(object):
         slave_urls = ServerMachine.slave_urls()
         self.master_agent = ScrapyAgent(master_url)
         self.slave_agents = [ScrapyAgent(url) for url in slave_urls]
+
+    def distribute_in_multi_thread(self, func: str, master_args: tuple, slave_args: tuple) -> "DistributeRes":
+        """ 分布式部署的情况下，用多线程的方式在主从中运行相同的函数 """
+        master_thread = ThreadWithResult(target=getattr(self.master_agent, func), args=master_args)
+        master_thread.start()
+
+        slave_threads = []
+        for agent in self.slave_agents:
+            t = ThreadWithResult(target=getattr(agent, func), args=slave_args)
+            slave_threads.append(t)
+            t.start()
+
+        master_thread.join()
+        [t.join() for t in slave_threads]
+
+        distri_res = DistributeRes()
+        distri_res.set_master(master_thread.get_result())
+        [distri_res.push_slaves(t.get_result()) for t in slave_threads]
+
+        return distri_res
 
     def add_project(self, tmpl_name: str, tmpl_args: dict):
         pinyin = Pinyin()
@@ -116,50 +156,42 @@ class ProjectSrv(object):
                     projects[index]["error"] = log_err["doc_count"]
         return {"total": pagination.total, "data": projects}
 
-    def del_projects(self, args: dict):
+    def del_projects(self, **kwargs):
         # 删除srcapyd主服务器的指定工程下的所有版本
-        if self.master_agent.del_project(args.get("project_name")):
-            # 遍历srcapyd从服务器， 删除的指定工程下的所有版本
-            for agent in self.slave_agents:
-                if not agent.del_project(args.get("project_name")):
-                    abort(500, message="删除节点：{} 时出现错误！".format(agent.server_url))
+        res = self.distribute_in_multi_thread(func='del_project',
+                                              master_args=(kwargs['project_name'],),
+                                              slave_args=(kwargs['project_name'],))
+
+        if not res.master:
+            abort(500, message="删除主节点时出现错误！")
+
+        if not all(res.slaves):
+            abort(500, message="删除从节点时出现错误！")
+
         # 删除系统上的数据库
-
-        Project.delete(filters={"id": args.get("id")})
-        Spider.delete(filters={"project_id": args.get("id")})
+        Project.delete(filters={"id": kwargs['id']})
+        Spider.delete(filters={"project_id": kwargs['id']})
         return "已删除工程！"
-
-    def distribute_in_multi_thread(self, func: str, master_args: tuple, slave_args: tuple) -> tuple:
-        """ 分布式部署的情况下，用多线程的方式在主从中运行相同的函数 """
-        master_thread = ThreadWithResult(target=getattr(self.master_agent, func), args=master_args)
-        master_thread.start()
-
-        slave_threads = []
-        for agent in self.slave_agents:
-            t = ThreadWithResult(target=getattr(agent, func), args=slave_args)
-            slave_threads.append(t)
-            t.start()
-
-        master_thread.join()
-        [t.join() for t in slave_threads]
-
-        return master_thread.get_result(), [t.get_result() for t in slave_threads]
 
     def deploy(self, project: dict, egg_bytes_master: BinaryIO, egg_bytes_slave: BinaryIO = None) -> bool:
         # TODO dict 参数的代码优化
         if egg_bytes_slave is not None and project['is_msd'] == 1:
             version = int(time.time())
 
-            res = self.distribute_in_multi_thread('deploy', (project['project_name'], version, egg_bytes_master),
-                                            (project['project_name'], version, egg_bytes_slave))
-            return res[0] and any(res[1])
+            res = self.distribute_in_multi_thread(func='deploy',
+                                                  master_args=(project['project_name'], version, egg_bytes_master),
+                                                  slave_args=(project['project_name'], version, egg_bytes_slave))
+            return res.master and any(res.slaves)
 
     def sync_spiders(self, project_name: str):
         # 获取工程id
         project = Project.find_by_name(project_name)
         # 获取工程下的蜘蛛列表, 然后更新至数据库
-        spider_list = self.master_agent.list_spiders(project_name)
-        master_spider_name = spider_list[0] if spider_list else None
+        res = self.distribute_in_multi_thread(func='list_spiders_and_addr',
+                                              master_args=(project_name,),
+                                              slave_args=(project_name,))
+
+        master_spider_name = res.master['spider_list'][0]
         # 更新数据库
         Spider.save({
             "name": master_spider_name,
@@ -169,17 +201,13 @@ class ProjectSrv(object):
             "address": self.master_agent.server_url
         })
 
-        # 遍历从服务器节点， 当获取到从爬虫名时，跳出循环
-        for slave_agent in self.slave_agents:
-            slave_spider_name_list = slave_agent.list_spiders(project_name)
-            slave_spider_name = slave_spider_name_list[0] if slave_spider_name_list else None
-            # 更新数据库
+        for slave in res.slaves:
             Spider.save({
-                "name": slave_spider_name,
+                "name": slave['spider_list'][0],
                 "project_id": project.id,
                 "project_name": project.project_name,
                 "type": "slave",
-                "address": slave_agent.server_url
+                "address": slave['address']
             })
 
     def update_all_spider_running_status(self):

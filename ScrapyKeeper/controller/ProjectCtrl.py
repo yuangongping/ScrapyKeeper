@@ -50,6 +50,6 @@ class ProjectCtrl(Resource):
         parser.add_argument('project_name', required=True, type=str)
         args = parser.parse_args(strict=True)
         projectSrv = ProjectSrv()
-        data = projectSrv.del_projects(args=args)
-        return success_res(data)
+        msg = projectSrv.del_projects(args=args)
+        return success_res(msg)
 
