@@ -2,7 +2,7 @@ import psutil
 import datetime
 from ScrapyKeeper.service.ProjectSrv import ProjectSrv
 from ScrapyKeeper.service.LogManageSrv import LogManageSrv
-from ScrapyKeeper.model.Project import db
+from ScrapyKeeper.model.Project import db, Project
 from ScrapyKeeper.model.DataStorage import DataStorage
 from sqlalchemy import func
 from ScrapyKeeper.utils.date_tools import get_near_ndays
@@ -13,19 +13,21 @@ class DataCentralSrv:
     def get(self):
         cpu_used = self.get_cpu_state()
         memorystate = self.getMemorystate()
-        projectSrv = ProjectSrv()
-        projectSrv.update_all_spider_running_status()
-        project_running_status = projectSrv.statistical_running_status()
+        projects_list = [project.project_name for project in Project.query.all()]
+        # TODO 更新运行率
+        # projectSrv.update_all_spider_running_status()
+        # project_running_status = projectSrv.statistical_running_status()
         log_errors = LogManageSrv.log_count()
         log_status = {
             "normal": 0,
             "error": 0
         }
-        for log in log_errors:
-            if log.get("doc_count") > 0:
-                log_status["error"] += 1
-            else:
-                log_status["normal"] += 1
+        if log_errors:
+            for log in log_errors:
+                if log.get("doc_count") > 0 and log.get("key") in projects_list:
+                    log_status["error"] += 1
+                else:
+                    log_status["normal"] += 1
         data = {
             "cupStatus": {
                 "used": cpu_used,
@@ -36,8 +38,8 @@ class DataCentralSrv:
                 "Unused": memorystate.get("total") - memorystate.get("used")
             },
             "project_running_status": {
-                "waitting": project_running_status.get("waitting"),
-                "running": project_running_status.get("running")
+                "waitting": 0,
+                "running": 0
             },
             "project_error_rate_status": log_status,
             "dataCount": self.get_all_data_count(),
@@ -75,8 +77,9 @@ class DataCentralSrv:
         all = db.engine.execute(sql)
         data = 0
         for item in all:
-            data = int(item[0])
+            data = int(item[0]) if item[0] else 0
         return data
+
 
     def get_file_size(self):
         data = db.session.query(func.sum(DataStorage.file_size)).scalar()
@@ -98,7 +101,10 @@ class DataCentralSrv:
         # 获取近七天的日期列表
         days = get_near_ndays()
         # 获取数据更新最新的前N个工程名
-        projects = DataStorage.query.with_entities(DataStorage.project_name_zh).group_by(DataStorage.project_name).order_by(DataStorage.date_created.desc()).all()
+        try:
+            projects = DataStorage.query.with_entities(DataStorage.project_name_zh).group_by(DataStorage.project_name).order_by(DataStorage.date_created.desc()).all()
+        except:
+            projects = []
         projects = [item[0] if index % 2 == 0 else "\n"+item[0]
                         for index, item in enumerate(projects[:N])]
         # 遍历日期列表， 查询如当天的所有工程的数据总和

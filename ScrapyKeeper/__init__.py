@@ -7,7 +7,7 @@
 # @contact : xie-hong-tao@qq.com
 import logging
 import os
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, render_template
 from flask_cors import CORS
 from flask_restful import Api
 from ScrapyKeeper import config
@@ -31,6 +31,9 @@ handler.setFormatter(formatter)
 app.logger.setLevel(app.config.get('LOG_LEVEL', "INFO"))
 app.logger.addHandler(handler)
 
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 @app.route('/favicon.ico')
 def favicon():
@@ -41,5 +44,6 @@ def favicon():
 from .router import regist_router
 regist_router()
 # from ScrapyKeeper.service.SchedulerSrv import SchedulerSrv
-# SchedulerSrv.add_existed_job_to_ram_scheduler()
+# schedulerSrv = SchedulerSrv()
+# schedulerSrv.add_existed_job_to_ram_scheduler()
 ram_scheduler.start()

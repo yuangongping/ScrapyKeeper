@@ -8,3 +8,6 @@ __pycache__/
 *.njsproj
 *.sln
 *.db
+ScrapyKeeper/static/
+ScrapyKeeper/templates/
+gunicorn.pid

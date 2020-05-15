@@ -45,7 +45,8 @@ class Base(db.Model):
                 value = float(value)
             elif isinstance(column.type, LargeBinary):
                 value = str(base64.b64encode(value))
-                value = value.replace("b'", '').replace("='", "=")
+                value = value.replace("b'", '')
+                value = value[:-1]
             dic[column.name] = value
         return dic
 
@@ -55,8 +56,7 @@ class Base(db.Model):
             if key not in columns:
                 raise KeyError('%s has no column %s' % (self.__table__, key))
             else:
-                if val:
-                    setattr(self, key, val)
+                setattr(self, key, val)
 
     @classmethod
     def save(cls, dic: dict) -> "Dict or None":

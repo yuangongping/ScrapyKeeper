@@ -51,15 +51,16 @@ class ScrapyAgent(object):
     def cancel_spider(self, project_name, job_id):
         return self.scrapyd_api.cancel(project_name, job_id)
 
-    def deploy(self, project_name: str, version: int, egg_byte: BinaryIO) -> "Dict or bool":
+    def deploy(self, project_name: str, version: int, egg_path: str) -> "Dict or bool":
         print('正在部署项目： %s，版本号： %s  ......' % (project_name, version))
-        spider_num = self.scrapyd_api.add_version(project_name, version, egg_byte)
-        print('完成： %s 项目部署，版本号： %s ！' % (project_name, version))
-        return {
-            'project_name': project_name,
-            'version': version,
-            'spider_num': spider_num,
-        } if spider_num else False
+        with open(egg_path, 'rb') as f:
+            spider_num = self.scrapyd_api.add_version(project_name, version, f)
+            print('完成： %s 项目部署，版本号： %s ！' % (project_name, version))
+            return {
+                'project_name': project_name,
+                'version': version,
+                'spider_num': spider_num,
+            } if spider_num else False
 
     def log_url(self, project_name, spider_name, job_id):
         return '{}/logs/{}/{}/{}'\

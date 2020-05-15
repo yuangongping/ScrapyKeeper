@@ -13,7 +13,7 @@ import multiprocessing
 
 debug = False
 loglevel = 'debug'
-bind = '127.0.0.1:5060'
+bind = '0.0.0.0:5060'
 pidfile = 'gunicorn.pid'
 logfile = 'debug.log'
 workers = multiprocessing.cpu_count() * 2 + 1
