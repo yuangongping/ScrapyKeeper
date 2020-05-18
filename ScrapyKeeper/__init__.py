@@ -41,5 +41,6 @@ def favicon():
 from .router import regist_router
 regist_router()
 # from ScrapyKeeper.service.SchedulerSrv import SchedulerSrv
-# SchedulerSrv.add_existed_job_to_ram_scheduler()
+# schedulerSrv = SchedulerSrv()
+# schedulerSrv.add_existed_job_to_ram_scheduler()
 ram_scheduler.start()

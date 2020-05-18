@@ -5,7 +5,7 @@ from ScrapyKeeper.model import db, Base
 class Scheduler(Base):
     __tablename__ = 'scheduler'
     # 爬虫项目id
-    project_id = db.Column(db.INTEGER, nullable=False, index=True, unique=True)
+    project_id = db.Column(db.INTEGER, nullable=False, index=True)
     # 周期调度-月份
     cron_month = db.Column(db.String(255), default="*")
     # 周期调度时间-天, 默认是*

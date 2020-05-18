@@ -112,8 +112,8 @@ class ProjectSrv(object):
         else:
             abort(500, message="生成工程失败")
 
-    def edit_project(self, args: dict):
-        return Project.save(dic=args)
+    def edit_project(self, **kwargs):
+        return Project.save(dic=kwargs)
 
     def get_all_projects(self, args: dict):
         exp_list = []

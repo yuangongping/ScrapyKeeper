@@ -11,6 +11,7 @@ import demjson
 import time
 
 
+
 class SchedulerSrv(object):
     def __init__(self):
         master_url = ServerMachine.master_url()
@@ -40,6 +41,7 @@ class SchedulerSrv(object):
 
     def start_up_project(self, args: dict):
         try:
+            print(args)
             # 通过工程找到对应的爬虫实例
             filters = {"project_id": args.get("id")}
             spiders = Spider.query.filter_by(**filters).all()
@@ -110,7 +112,7 @@ class SchedulerSrv(object):
             schedule_id = str(args.get("project_id")) + "_" + str(int(time.time()))
             ram_scheduler.add_job(
                 self.start_up_project,
-                kwargs={"args": {"project_id": args.get("project_id"), "schedule_id": schedule_id}},
+                kwargs={"args": {"id": args.get("project_id"), "schedule_id": schedule_id}},
                 trigger='cron',
                 id=schedule_id,
                 month='{}'.format(args.get("cron_month")),
@@ -122,7 +124,6 @@ class SchedulerSrv(object):
                 misfire_grace_time=60 * 60,
                 coalesce=True
             )
-            print(args)
             Scheduler.save(dic=args)
             return True
         except:

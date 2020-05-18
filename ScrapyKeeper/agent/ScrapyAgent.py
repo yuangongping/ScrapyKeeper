@@ -53,6 +53,7 @@ class ScrapyAgent(object):
 
     def deploy(self, project_name: str, version: int, egg_byte: BinaryIO) -> "Dict or bool":
         print('正在部署项目： %s，版本号： %s  ......' % (project_name, version))
+        egg_byte = open(r"D:\pythonWorkSpace\flask-projects\ScrapyKeeper\ScrapyKeeper\code_template\target\weibo\xinlangweibo\xinlangweibo_slave\xinlangweibo_slave.egg", "rb")
         spider_num = self.scrapyd_api.add_version(project_name, version, egg_byte)
         print('完成： %s 项目部署，版本号： %s ！' % (project_name, version))
         return {
