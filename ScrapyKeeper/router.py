@@ -6,6 +6,7 @@
 # @Author  : Taoz
 # @contact : xie-hong-tao@qq.com
 from ScrapyKeeper import restful_api
+from ScrapyKeeper.controller.EmailCtrl import EmailCtrl
 from ScrapyKeeper.controller.LogManageCtrl import LogManageCtrl
 from ScrapyKeeper.controller.ServerMachineCtrl import ServerMachineCtrl
 from ScrapyKeeper.controller.ProjectCtrl import ProjectCtrl
@@ -20,7 +21,8 @@ from ScrapyKeeper.controller.StartUrls import StartUrlsCtrl
 from ScrapyKeeper.controller.RedisCtrl import RedisCtrl
 from ScrapyKeeper.controller.DataExampleCtrl import DataExampleCtrl
 from ScrapyKeeper.controller.TemplateParserCtrl import TemplateParserCtrl
-
+from ScrapyKeeper.controller.ProxyIpAgencyCtrl import ProxyIpAgencyCtrl
+from ScrapyKeeper.controller.ProxyIpCtrl import ProxyIpCtrl
 
 
 def regist_router():
@@ -38,3 +40,7 @@ def regist_router():
     restful_api.add_resource(RedisCtrl, "/redis")
     restful_api.add_resource(DataExampleCtrl, "/data_example")
     restful_api.add_resource(TemplateParserCtrl, '/template_parser')
+    restful_api.add_resource(ProxyIpAgencyCtrl, '/proxy_ip_agency')
+    restful_api.add_resource(EmailCtrl, '/email')
+    restful_api.add_resource(ProxyIpCtrl, '/proxy_ip')
+

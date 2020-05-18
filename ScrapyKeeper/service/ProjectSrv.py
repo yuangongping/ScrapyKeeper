@@ -5,8 +5,12 @@
 # @Software: PyCharm
 # @Author  : Taoz
 # @contact : xie-hong-tao@qq.com
+import os
+import tempfile
 import time
 from typing import BinaryIO
+
+from werkzeug.utils import secure_filename
 from xpinyin import Pinyin
 from flask_restful import abort
 from ScrapyKeeper.agent.ScrapyAgent import ScrapyAgent
@@ -75,53 +79,79 @@ class ProjectSrv(object):
                 print(e)
         return distri_res
 
-    def add_project(self, tmpl_name: str, tmpl_args: dict):
+    def gen_name(self, name_zh: str) -> str:
         pinyin = Pinyin()
-        name_en = pinyin.get_pinyin(tmpl_args['project_name_zh'])
-        tmpl_args['project_name'] = ''.join(name_en.split("-"))
+        name_en = pinyin.get_pinyin(name_zh)
+        name = ''.join(name_en.split("-"))
 
         # TODO: 前端通过中文生成项目英文名并提交，存在相同英文名的时候，提醒用户自己手动修改英文名
-        exist = Project.find_by_name(tmpl_args['project_name'])
+        exist = Project.find_by_name(name)
         if exist:
             abort(400, message="存在相同的工程名称，请重新命名")
-        egg_path = ScrapyGenerator.gen(tmpl_name, **tmpl_args)
+        else:
+            return name
+
+    def add_project_by_template(self, tpl_name: str, tpl_args: dict):
+        tpl_args['project_name'] = self.gen_name(tpl_args['project_name_zh'])
+
+        egg_path = ScrapyGenerator.gen(tpl_name, **tpl_args)
         if egg_path.get('master') is not None:
             # 分布式
             if egg_path.get('slave') is not None:
-                deploy_status = self.deploy(
-                    project={"is_msd": 1, "project_name": tmpl_args['project_name'],
-                             "project_name_zh": tmpl_args['project_name_zh'], "template": tmpl_name
-                             },
-                    egg_path_master=egg_path.get("master"),
-                    egg_path_slave=egg_path.get("slave")
-                )
+                project = {"is_msd": 1}
+                project.update(tpl_args)
             # 单机
             else:
-                deploy_status = self.deploy(
-                    project={"is_msd": 0, "project_name": tmpl_args['project_name'],
-                             "project_name_zh": tmpl_args['project_name_zh'], "template": tmpl_name
-                             },
-                    egg_path_master=egg_path.get("master")
-                )
+                project = {"is_msd": 0}
+                project.update(tpl_args)
+            deploy_status = self.deploy(
+                project=project,
+                egg_path_master=egg_path.get("master"),
+                egg_path_slave=egg_path.get("slave")
+            )
 
             if deploy_status:
                 Project.save({
                     "is_msd": 1,
-                    "category": tmpl_args["category"],
-                    "project_name": tmpl_args['project_name'],
-                    "project_name_zh": tmpl_args['project_name_zh'],
-                    "tpl_input": tmpl_args.get("tpl_input")})
-                self.sync_spiders(tmpl_args['project_name'])
-            else:
-                abort(500, message="部署失败")
-        else:
-            abort(500, message="生成工程失败")
+                    "category": tpl_args["category"],
+                    "project_name": tpl_args['project_name'],
+                    "project_name_zh": tpl_args['project_name_zh'],
+                    "tpl_input": tpl_args.get("tpl_input")})
+                self.sync_spiders(tpl_args['project_name'])
+                return deploy_status
+            abort(500, message="部署失败")
+        abort(500, message="生成工程失败")
+
+    def add_project(self, project_name_zh: str, master_egg, slave_egg=None):
+        name_en = self.gen_name(project_name_zh)
+        master_filename = secure_filename(master_egg.filename)  # 获取master文件名
+        slave_filename = secure_filename(slave_egg.filename)  # 获取slave文件名
+
+        dst_master_egg = os.path.join(tempfile.gettempdir(), master_filename)  # 拼接文件路径
+        dst_slave_egg = os.path.join(tempfile.gettempdir(), slave_filename)  # 拼接文件路径
+
+        slave_egg.save(dst_slave_egg)  # 保存slave文件
+        master_egg.save(dst_master_egg)  # 保存master文件
+
+        deploy_status = self.deploy(
+            project={
+                'is_msd': 1,
+                'project_name': name_en,
+                'project_name_zh': project_name_zh
+            },
+            egg_path_master=dst_master_egg,
+            egg_path_slave=dst_slave_egg
+        )
+        return deploy_status
+
+
+        # 保存egg 文件
 
 
     def edit_project(self, **kwargs):
         return Project.save(dic=kwargs)
 
-    def get_all_projects(self, args: dict):
+    def list_projects(self, args: dict):
         exp_list = []
         if args.get("project_name_zh"):
             words = args.get("project_name_zh").split(' ')
@@ -144,21 +174,23 @@ class ProjectSrv(object):
         projects = pagination.items
         self.update_spider_status(projects)
 
-        log_error_list = LogManageSrv.log_count()
-        data = []
-        for project in projects:
-            proj = project.to_dict()
-            scheduler = Scheduler.query.filter_by(project_id=project.id).first()
-            proj["error"] = 0
-            proj["time"] = scheduler.desc if scheduler else "待添加调度"
-            if log_error_list:
-                for log_err in log_error_list:
-                    if proj["project_name"] in log_err["key"]:
-                        proj["error"] = log_err["doc_count"]
-                        break
-            data.append(proj)
+        return {"total": pagination.total, "data": [proj.to_dict() for proj in projects ]}
 
-        return {"total": pagination.total, "data": data}
+        # log_error_list = LogManageSrv.log_count()
+        # data = []
+        # for project in projects:
+        #     proj = project.to_dict()
+        #     scheduler = Scheduler.query.filter_by(project_id=project.id).first()
+        #     proj["error"] = 0
+        #     proj["time"] = scheduler.desc if scheduler else "待添加调度"
+        #     if log_error_list:
+        #         for log_err in log_error_list:
+        #             if proj["project_name"] in log_err["key"]:
+        #                 proj["error"] = log_err["doc_count"]
+        #                 break
+        #     data.append(proj)
+
+        # return {"total": pagination.total, "data": data}
 
     def del_projects(self, **kwargs):
         # 删除srcapyd主服务器的指定工程下的所有版本
@@ -185,6 +217,7 @@ class ProjectSrv(object):
             res = self.distribute_in_multi_thread(func='deploy',
                                                   master_args=(project['project_name'], version, egg_path_master),
                                                   slave_args=(project['project_name'], version, egg_path_slave))
+
             return res.master and any(res.slaves)
 
     def sync_spiders(self, project_name: str):

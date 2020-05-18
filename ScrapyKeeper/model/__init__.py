@@ -7,6 +7,7 @@
 # @contact : xie-hong-tao@qq.com
 from typing import List
 
+from flask_restful import abort
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import DateTime, Date, Numeric
 import base64
@@ -36,6 +37,8 @@ class Base(db.Model):
     def to_dict(self) -> "dict":
         dic = {}
         for column in self.__table__.columns:
+            if column.name in ['date_created', 'date_modified']:
+                continue
             value = getattr(self, column.name)
             if isinstance(column.type, Date):
                 value = value.strftime('%Y-%m-%d')
@@ -60,32 +63,39 @@ class Base(db.Model):
 
     @classmethod
     def save(cls, dic: dict) -> "Dict or None":
-        if 'id' in dic:
-            item = cls.query.filter(cls.id == dic['id']).first()
-            if item is None:
-                raise ValueError('Table %s has no data where id %s' % (cls.__table__, dic['id']))
+        try:
+        # TODO 多个联合主键在新增和更新的时候需要进行存在性判断（参照servermachine）
+            if 'id' in dic:
+                item = cls.query.filter(cls.id == dic['id']).first()
+                if item is None:
+                    raise ValueError('Table %s has no data where id %s' % (cls.__table__, dic['id']))
+                else:
+                    item.set(dic)
+                    dic = item.to_dict()
             else:
-                item.set(dic)
-                dic = item.to_dict()
-        else:
-            new_one = cls()
-            new_one.set(dic)
-            db.session.add(new_one)
-        db.session.commit()
-        return dic
+                new_one = cls()
+                new_one.set(dic)
+                db.session.add(new_one)
+            db.session.commit()
+            return dic
+        except Exception as err:
+            abort(500, message=str(err))
 
     @classmethod
     def delete(cls, filters: dict) -> bool:
-        objs = cls.query.filter_by(**filters).all()
-        for item in objs:
-            db.session.delete(item)
-            db.session.commit()
-
+        try:
+            objs = cls.query.filter_by(**filters).all()
+            for item in objs:
+                db.session.delete(item)
+                db.session.commit()
+            return True
+        except IOError as err:
+            abort(500, message=str(err))
 
     @classmethod
-    def find_by_id(cls, _id: int) -> 'cls or None':
+    def find_by_id(cls, _id: int, _to_dict: bool = True) -> "Base":
         item = cls.query.filter(cls.id == _id).first()
-        return item.to_dict() if item is not None else None
+        return item.to_dict() if _to_dict and item is not None else item
 
     @classmethod
     def all(cls, _to_dict: bool = True) -> "List":

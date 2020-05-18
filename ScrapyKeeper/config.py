@@ -8,7 +8,7 @@
 
 # dev
 
-SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:cetc@2019@10.5.9.110:3306/scrapykeeper'
+SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:root@localhost/scrapykeeper'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 SQLALCHEMY_POOL_RECYCLE = 30
 

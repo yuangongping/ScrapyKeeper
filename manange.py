@@ -15,6 +15,8 @@ from ScrapyKeeper.model.ServerMachine import ServerMachine
 from ScrapyKeeper.model.Project import Project
 from ScrapyKeeper.model.TemplateMange import TemplateMange
 from ScrapyKeeper.model.SendEmail import SendEmail
+from ScrapyKeeper.model.ProxyIp import ProxyIpRecord, ProxyIpAgency, ProxyIpCurrent
+from ScrapyKeeper.model.Email import Email
 
 
 def create_db():
