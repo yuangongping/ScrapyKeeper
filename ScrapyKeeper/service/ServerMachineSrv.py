@@ -17,14 +17,15 @@ class ServerMachineSrv(object):
 
         try:
             # 判断添加的服务器是否可用
-            res = requests.get(args.get('url'), timeout=3)
-            if res.status_code == 200:
-                # 保存数据
-                ServerMachine.save(args)
-            else:
-                abort(400, message='Server machine disabled 服务器不可用')
+            res = requests.get(args.get('url'), timeout=5)
+            assert res.status_code == 200
         except Exception as e:
-            abort(500, message='保存出错')
+            abort(400, message='服务器不可用')
+
+        try:
+            ServerMachine.save(args)
+        except Exception as e:
+            abort(400, message=str(e))
 
     @classmethod
     def list(cls):

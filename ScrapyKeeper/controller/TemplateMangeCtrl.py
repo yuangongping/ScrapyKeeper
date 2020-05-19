@@ -51,10 +51,10 @@ class TemplateMangeCtrl(Resource):
         parser.add_argument('tpl_zh', required=True, type=str)
         parser.add_argument('tpl_type', required=True, type=int)
         parser.add_argument('tpl_input', required=True, type=str)
-        parser.add_argument('tpl_img', type=FileStorage, location='files')
-        parser.add_argument('tpl_zip', type=FileStorage, location='files')
+        # parser.add_argument('tpl_img', type=FileStorage, location='files')
+        # parser.add_argument('tpl_zip', type=FileStorage, location='files')
         args = parser.parse_args(strict=True)
-        data = TemplateMangeSrv.update(args=args)
+        data = TemplateMangeSrv.save(args=args)
         if not data:
             return error_res("存储错误！")
         return success_res(data)

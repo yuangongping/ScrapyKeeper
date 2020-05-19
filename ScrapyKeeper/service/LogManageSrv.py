@@ -89,26 +89,34 @@ class LogManageSrv(object):
        """
         # 操作elasticsearch数据库的执行语句
         # 主要是按照项目名称分组计数
-        query_json = {
-            "size": 0,  # 控制获取数据量
-            "query": {
-                "term": {
-                    "loglevel.keyword": "ERROR"  # 查询条件语句
-                }
-            },
-            "aggs": {  # 分组聚合
-                "project_group": {
-                    "terms": {
-                        "field": "project_name.keyword"
+        try:
+            query_json = {
+                "size": 0,  # 控制获取数据量
+                "query": {
+                    "term": {
+                        "loglevel.keyword": "ERROR"  # 查询条件语句
+                    }
+                },
+                "aggs": {  # 分组聚合
+                    "project_group": {
+                        "terms": {
+                            "field": "project_name.keyword"
+                        }
                     }
                 }
             }
-        }
-        connection = cls.es_connection()  # 连接数据库
-        # 从数据库中提取数据
-        es_data = connection.search(index='duocaiyun-*', body=query_json)
-        # 获取分组聚合的各项目出现错误的数量
-        return es_data['aggregations']['project_group']['buckets']
+            connection = cls.es_connection()  # 连接数据库
+            # 从数据库中提取数据
+            es_data = connection.search(index='duocaiyun-*', body=query_json)
+            if es_data:
+                # 获取分组聚合的各项目出现错误的数量
+                return es_data.get('aggregations').get('project_group').get('buckets')
+            else:
+                return None
+        except:
+            return None
+
+
 
     @classmethod
     def log_delete(cls, project_name: str):

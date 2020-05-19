@@ -20,3 +20,5 @@ class Scheduler(Base):
     run_type = db.Column(db.String(20), default="periodic")
     # 任务描述
     desc = db.Column(db.Text)
+    # 任务的参数
+    config = db.Column(db.Text)

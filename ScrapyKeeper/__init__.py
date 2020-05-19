@@ -7,14 +7,15 @@
 # @contact : xie-hong-tao@qq.com
 import logging
 import os
-from flask import Flask, send_from_directory
+from threading import Lock
+
+from flask import Flask, send_from_directory, render_template
 from flask_cors import CORS
 from flask_restful import Api
 from ScrapyKeeper import config
 from apscheduler.schedulers.background import BackgroundScheduler
 ram_scheduler = BackgroundScheduler()
-
-
+lock = Lock()
 
 app = Flask(__name__)
 restful_api = Api(app)
@@ -31,6 +32,9 @@ handler.setFormatter(formatter)
 app.logger.setLevel(app.config.get('LOG_LEVEL', "INFO"))
 app.logger.addHandler(handler)
 
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 @app.route('/favicon.ico')
 def favicon():

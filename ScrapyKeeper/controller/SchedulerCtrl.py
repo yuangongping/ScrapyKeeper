@@ -10,13 +10,14 @@ class SchedulerCtrl(Resource):
         立即运行
         :return:
         """
-        parser = reqparse.RequestParser()
-        parser.add_argument('id', required=True, type=int)
-        parser.add_argument('run_type', required=True, type=str)
-        args = parser.parse_args(strict=True)
-        schedulerSrv = SchedulerSrv()
-        data = schedulerSrv.start_up_project(args=args)
-        return success_res(data)
+        pass
+        # parser = reqparse.RequestParser()
+        # parser.add_argument('id', required=True, type=int)
+        # parser.add_argument('run_type', required=True, type=str)
+        # args = parser.parse_args(strict=True)
+        # schedulerSrv = SchedulerSrv()
+        # data = schedulerSrv.start_up_project(args=args)
+        # return success_res(data)
 
     def post(self):
         """
@@ -24,16 +25,12 @@ class SchedulerCtrl(Resource):
         :return:
         """
         parser = reqparse.RequestParser()
-        parser.add_argument('project_id', required=True, type=int)
-        parser.add_argument('cron_month', required=True, type=str)
-        parser.add_argument('cron_day_of_month', required=True, type=str)
-        parser.add_argument('cron_hour', required=True, type=str)
-        parser.add_argument('cron_minutes', required=True, type=str)
-        parser.add_argument('desc', required=True, type=str)
+        parser.add_argument('project_name', required=True, type=str)
+        parser.add_argument('config', required=True, type=str)
         args = parser.parse_args(strict=True)
         schedulerSrv = SchedulerSrv()
         data = schedulerSrv.add_scheduler(args=args)
-        return success_res(data)
+        return success_res("")
 
     def put(self):
         """

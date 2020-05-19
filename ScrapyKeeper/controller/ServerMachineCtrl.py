@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 # Author:chenlincui
+from flask import request
 from flask_restful import Resource, reqparse, abort
+
+from ScrapyKeeper.agent.ScrapyAgent import ScrapyAgent
 from ScrapyKeeper.service.ServerMachineSrv import ServerMachineSrv
 from ScrapyKeeper.utils import success_res, error_res
 
@@ -9,8 +12,13 @@ from ScrapyKeeper.utils import success_res, error_res
 class ServerMachineCtrl(Resource):
     def get(self):
         """ 列出所有的服务器信息 """
-        data = ServerMachineSrv.list()
-        return success_res(data)
+        url = request.args.get('url')
+        if url is None:
+            data = ServerMachineSrv.list()
+            return success_res(data)
+        else:
+            agent = ScrapyAgent(url)
+            return success_res(agent.daemon_status())
 
     def post(self):
         """ 添加服务器 """
@@ -27,7 +35,6 @@ class ServerMachineCtrl(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('id', required=True, type=str)
         args = parser.parse_args(strict=True)
-        # abort(400, message="删除失败")
         ServerMachineSrv.delete(id=args.get("id"))
         return success_res()
 
@@ -43,6 +50,6 @@ class ServerMachineCtrl(Resource):
         args = parser.parse_args(strict=True)
         args.pop("date_created")
         args.pop("date_modified")
-        print(args)
         data = ServerMachineSrv.save(args)
         return success_res(data)
+
