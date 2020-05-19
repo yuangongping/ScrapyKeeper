@@ -173,7 +173,13 @@ class ProjectSrv(object):
         projects = pagination.items
         self.update_spider_status(projects)
 
-        return {"total": pagination.total, "data": [proj.to_dict() for proj in projects ]}
+        data = []
+        for project in projects:
+            proj = project.to_dict()
+            proj["error"] = 0
+            data.append(proj)
+
+        return {"total": pagination.total, "data": data}
 
         # log_error_list = LogManageSrv.log_count()
         # data = []
@@ -188,7 +194,7 @@ class ProjectSrv(object):
         #                 proj["error"] = log_err["doc_count"]
         #                 break
         #     data.append(proj)
-
+        #
         # return {"total": pagination.total, "data": data}
 
     def del_projects(self, **kwargs):
