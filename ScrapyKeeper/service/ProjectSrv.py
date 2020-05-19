@@ -111,14 +111,14 @@ class ProjectSrv(object):
             )
 
             if deploy_status:
-                Project.save({
+                proj_db = Project.save({
                     "is_msd": 1,
                     "category": tpl_args["category"],
                     "project_name": tpl_args['project_name'],
                     "project_name_zh": tpl_args['project_name_zh'],
                     "tpl_input": tpl_args.get("tpl_input")})
                 self.sync_spiders(tpl_args['project_name'])
-                return deploy_status
+                return proj_db
             abort(500, message="部署失败")
         abort(500, message="生成工程失败")
 
@@ -133,19 +133,23 @@ class ProjectSrv(object):
         slave_egg.save(dst_slave_egg)  # 保存slave文件
         master_egg.save(dst_master_egg)  # 保存master文件
 
-        deploy_status = self.deploy(
-            project={
+        proj = {
                 'is_msd': 1,
                 'project_name': name_en,
                 'project_name_zh': project_name_zh
-            },
+            }
+
+        deploy_status = self.deploy(
+            project=proj,
             egg_path_master=dst_master_egg,
             egg_path_slave=dst_slave_egg
         )
-        return deploy_status
 
-
-        # 保存egg 文件
+        if deploy_status:
+            proj_db = Project.save(proj)
+            self.sync_spiders(name_en)
+            return proj_db
+        abort(500, message="部署失败")
 
 
     def edit_project(self, **kwargs):

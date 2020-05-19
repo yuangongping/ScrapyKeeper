@@ -28,8 +28,9 @@ class ProjectCtrl(Resource):
             parser = reqparse.RequestParser()
             parser.add_argument('project_name_zh', required=True, type=str)
             parser.add_argument('template', type=str)
-            parser.add_argument('tpl_input', required=True, type=str)
+            # parser.add_argument('tpl_input', required=True, type=str)
             args = parser.parse_args()
+            args['tpl_input'] = '{}'
             tmpl = args.pop('template')
             args["category"] = tmpl
             data = self.srv.add_project_by_template(tpl_name=tmpl, tpl_args=args)

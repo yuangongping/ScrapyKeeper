@@ -73,10 +73,11 @@ class Base(db.Model):
                     item.set(dic)
                     dic = item.to_dict()
             else:
-                new_one = cls()
-                new_one.set(dic)
-                db.session.add(new_one)
+                item = cls()
+                item.set(dic)
+                db.session.add(item)
             db.session.commit()
+            dic['id'] = item.id
             return dic
         except Exception as err:
             abort(500, message=str(err))
