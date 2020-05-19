@@ -75,7 +75,8 @@ class SchedulerSrv(object):
                     dic = {
                         "project_id": project_id,
                         "scrapyd_job_id": master_job_id,
-                        "job_uuid": job_uuid
+                        "job_uuid": job_uuid,
+                        "scrapyd_url": self.master_agent.server_url
                     }
                     JobExecution.save(dic=dic)
                 else:
@@ -96,7 +97,8 @@ class SchedulerSrv(object):
                             dic = {
                                 "project_id": project_id,
                                 "scrapyd_job_id": slave_job_id,
-                                "job_uuid": job_uuid
+                                "job_uuid": job_uuid,
+                                "scrapyd_url": agent.server_url
                             }
                             JobExecution.save(dic=dic)
             return True

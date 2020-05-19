@@ -4,6 +4,8 @@ from ScrapyKeeper.service.SchedulerSrv import SchedulerSrv
 from ScrapyKeeper.utils.format_result import success_res, error_res
 import json
 
+
+
 class SchedulerCtrl(Resource):
     def get(self):
         """
@@ -11,13 +13,7 @@ class SchedulerCtrl(Resource):
         :return:
         """
         pass
-        # parser = reqparse.RequestParser()
-        # parser.add_argument('id', required=True, type=int)
-        # parser.add_argument('run_type', required=True, type=str)
-        # args = parser.parse_args(strict=True)
-        # schedulerSrv = SchedulerSrv()
-        # data = schedulerSrv.start_up_project(args=args)
-        # return success_res(data)
+
 
     def post(self):
         """
@@ -30,7 +26,7 @@ class SchedulerCtrl(Resource):
         args = parser.parse_args(strict=True)
         schedulerSrv = SchedulerSrv()
         data = schedulerSrv.add_scheduler(args=args)
-        return success_res("")
+        return success_res(data)
 
     def put(self):
         """
