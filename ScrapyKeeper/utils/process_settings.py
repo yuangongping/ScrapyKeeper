@@ -1,13 +1,17 @@
 import demjson
 
 
-def get_settings(config_str, project_name):
+def get_settings(config_str, project_name, scheduler_id):
     download_params_form = demjson.decode(demjson.decode(config_str).get("download_params_form"))
     crawl_range_form = demjson.decode(demjson.decode(config_str).get("crawl_range_form"))
     crawl_stratege_form = demjson.decode(demjson.decode(config_str).get("crawl_stratege_form"))
     storage_management_form = demjson.decode(demjson.decode(config_str).get("storage_management_form"))
+    data_return_form = demjson.decode(demjson.decode(config_str).get("data_return_form"))
+    seed_form = demjson.decode(demjson.decode(config_str).get("seed_form"))
+    SEED_LIST = [item["value"] for item in seed_form.get("domains")]
 
     settings = {
+        "LOG_LEVEL": "INFO",
         "RETRY_ENABLED": True,
         "RETRY_TIMES": download_params_form.get("reapt_num", 1),
         "CONCURRENT_REQUESTS": download_params_form.get("request_num", 8),
@@ -25,6 +29,15 @@ def get_settings(config_str, project_name):
         "MYSQL_USERNAME": storage_management_form.get("storage_content").get("username", 'root'),
         "MYSQL_PASSWORD": storage_management_form.get("storage_content").get("password", 'root'),
         "MYSQL_PROT": storage_management_form.get("storage_content").get("port", 3306),
+        "PROJECT_NAME": project_name,
+
+        "SCHEDULER_ID": scheduler_id,
+        "DATA_CALLBACK_URL": data_return_form.get("url"),
+        "DATA_CALLBACK_SIZE": data_return_form.get("batch_size"),
+        "FILE_UPLOAD_URL": storage_management_form.get("storage_type_3").get(
+            "interface_address", 'http://10.5.9.84:8084/dcy-file/fdfs/upload'),
+        "PROXY_CENTER_URL": "",
+        "SEED_LIST": demjson.encode(SEED_LIST)
     }
     # 如果深度优先
     if crawl_stratege_form.get("stratege", 1) == 1:

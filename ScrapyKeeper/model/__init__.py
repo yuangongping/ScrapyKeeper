@@ -28,7 +28,7 @@ def teardown_request(exception):
 class Base(db.Model):
     __abstract__ = True
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     date_created = db.Column(db.DateTime, default=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     date_modified = db.Column(db.DateTime, default=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                               onupdate=db.func.current_timestamp())

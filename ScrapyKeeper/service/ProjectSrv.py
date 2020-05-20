@@ -152,6 +152,7 @@ class ProjectSrv(object):
 
     def list_projects(self, args: dict):
         exp_list = []
+        """整合查询参数条件，构造数据库查询"""
         if args.get("project_name_zh"):
             words = args.get("project_name_zh").split(' ')
             for word in words:
@@ -168,17 +169,21 @@ class ProjectSrv(object):
             pagination = Project.query.filter(filter_exp).order_by(order_exp).paginate(
                 args.get("page_index"), args.get("page_szie"), error_out=False)
         else:
-            pagination = Project.query.order_by(order_exp).paginate(args.get("page_index"), args.get("page_size"), error_out=False)
-
+            pagination = Project.query.order_by(order_exp).paginate(
+                args.get("page_index"),
+                args.get("page_size"),
+                error_out=False
+            )
         projects = pagination.items
+        """更新工程的spider信息"""
         self.update_spider_status(projects)
 
+        """通过ELK日志分析系统， 获取工程的日志错误信息"""
         data = []
         for project in projects:
-            proj = project.to_dict()
+            proj = project.to_dict(base_time=True)
             proj["error"] = 0
             data.append(proj)
-
         return {"total": pagination.total, "data": data}
 
         # log_error_list = LogManageSrv.log_count()
@@ -196,6 +201,11 @@ class ProjectSrv(object):
         #     data.append(proj)
         #
         # return {"total": pagination.total, "data": data}
+
+    def get_project_by_project_name(self, project_name_zh):
+        project = Project.query.filter_by(project_name_zh=project_name_zh).first()
+        project_dict = project.to_dict(base_time=True)
+        return project_dict
 
     def del_projects(self, **kwargs):
         # 删除srcapyd主服务器的指定工程下的所有版本

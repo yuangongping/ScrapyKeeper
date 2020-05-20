@@ -19,15 +19,21 @@ class DataStorageCtrl(Resource):
         args["ip"] = request.remote_addr
         dataStorageSrv = DataStorageSrv()
         scrapyd_url = "http://{}:6800".format(args.get("ip"))
-        if args.get("type") == "openspider":
+        if args.get("type") == "open_spider":
             dataStorageSrv.update_start_time(
                 scheduler_id=args.get("scheduler_id"),
                 scrapyd_url=scrapyd_url
             )
-        elif args.get("type") == "closespider":
+        elif args.get("type") == "close_spider":
             dataStorageSrv.update_end_time(
                 scheduler_id=args.get("scheduler_id"),
                 scrapyd_url=scrapyd_url
+            )
+            dataStorageSrv.add(
+                scheduler_id=args.get("scheduler_id"),
+                scrapyd_url=scrapyd_url,
+                num=args.get("num", 200),
+                file_size=args.get("file_size", 0)
             )
         else:
             dataStorageSrv.add(

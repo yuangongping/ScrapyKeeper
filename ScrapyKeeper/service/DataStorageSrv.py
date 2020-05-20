@@ -7,6 +7,7 @@ from ScrapyKeeper.model.Project import Project
 from ScrapyKeeper.model.JobExecution import JobExecution
 import datetime
 
+
 class DataStorageSrv:
     def add(self, scheduler_id=None, scrapyd_url=None, num=200, file_size=None):
         scheduler = Scheduler.query.filter_by(id=scheduler_id).first()
@@ -37,13 +38,13 @@ class DataStorageSrv:
 
     def update_start_time(self, scheduler_id=None, scrapyd_url=None):
         JobExecution.query.filter_by(
-            job_uuid=scheduler_id,
+            scheduler_id=scheduler_id,
             scrapyd_url=scrapyd_url
         ).update({'start_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
 
     def update_end_time(self, scheduler_id=None, scrapyd_url=None):
         JobExecution.query.filter_by(
-            job_uuid=scheduler_id,
+            scheduler_id=scheduler_id,
             scrapyd_url=scrapyd_url
         ).update({'end_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
 

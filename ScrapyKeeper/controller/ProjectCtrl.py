@@ -8,8 +8,8 @@ from ScrapyKeeper.utils.format_result import success_res, error_res
 
 
 class ProjectCtrl(Resource):
-    srv = ProjectSrv()
-
+    def __init__(self):
+        self.srv = ProjectSrv()
 
     def get(self):
         parser = reqparse.RequestParser()
@@ -19,8 +19,12 @@ class ProjectCtrl(Resource):
         parser.add_argument('status', type=str)
         parser.add_argument('project_name_zh', type=str)
         parser.add_argument('project_name', type=str)
+        parser.add_argument('type', type=str)
         args = parser.parse_args()
-        data = self.srv.list_projects(args=args)
+        if args.get("type") == "info":
+            data = self.srv.get_project_by_project_name(project_name_zh=args.get("project_name_zh"))
+        else:
+            data = self.srv.list_projects(args=args)
         return success_res(data)
 
     def post(self):

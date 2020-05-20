@@ -51,20 +51,19 @@ class SchedulerSrv(object):
 
     def start_up_project(self, project_name: str, project_id: int, scheduler_id=None):
         try:
-            job_uuid = uuid1().hex
             # 通过工程找到对应的爬虫实例
             spiders = Spider.query.filter_by(**{"project_id": project_id}).all()
             scheduler = Scheduler.query.filter_by(id=scheduler_id).first()
             scrapyd_job_id = []
+            print(spiders)
             for spider in spiders:
+                print(spider.type)
                 if spider.type == "master":
                     _project_name = project_name + "_master" 
-                    settings = get_settings(scheduler.config, _project_name)
-                    # 启动主爬虫
+                    settings = get_settings(scheduler.config, _project_name, scheduler_id)
                     master_job_id = self.master_agent.start_spider(
                         spider.project_name,
                         spider.name,
-                        job_uuid=job_uuid,
                         scheduler_id=scheduler_id,
                         settings=settings
                     )
@@ -75,19 +74,18 @@ class SchedulerSrv(object):
                     dic = {
                         "project_id": project_id,
                         "scrapyd_job_id": master_job_id,
-                        "job_uuid": job_uuid,
+                        "scheduler_id": scheduler_id,
                         "scrapyd_url": self.master_agent.server_url
                     }
                     JobExecution.save(dic=dic)
                 else:
                     for agent in self.slave_agents:
                         _project_name = project_name + "_slave"
-                        settings = get_settings(scheduler.config, _project_name)
+                        settings = get_settings(scheduler.config, _project_name, scheduler_id)
                         if agent.server_url == spider.address:
                             slave_job_id = agent.start_spider(
                                 spider.project_name,
                                 spider.name,
-                                job_uuid=job_uuid,
                                 scheduler_id=scheduler_id,
                                 settings=settings
                             )
@@ -97,7 +95,7 @@ class SchedulerSrv(object):
                             dic = {
                                 "project_id": project_id,
                                 "scrapyd_job_id": slave_job_id,
-                                "job_uuid": job_uuid,
+                                 "scheduler_id": scheduler_id,
                                 "scrapyd_url": agent.server_url
                             }
                             JobExecution.save(dic=dic)
@@ -138,8 +136,9 @@ class SchedulerSrv(object):
 
     def add_scheduler(self, args: dict):
         try:
-            schedular_form = demjson.decode(demjson.decode(args.get("config")).get("schedular_form"))
-            run_type = schedular_form.get("type")
+
+            scheduler_form = demjson.decode(demjson.decode(args.get("config")).get("scheduler_form"))
+            run_type = scheduler_form.get("type")
             project = Project.query.filter_by(project_name=args.get("project_name")).first()
             # 单次运行
             if run_type == 1:
@@ -154,10 +153,10 @@ class SchedulerSrv(object):
                                       project_id=project.id, 
                                       scheduler_id=obj.get("id"))
             else:
-                cron_month = self.list_int2str(schedular_form.get("schedular").get("cron_month"))
-                cron_day_of_month = self.list_int2str(schedular_form.get("schedular").get("cron_day_of_month"))
-                cron_hour = self.list_int2str(schedular_form.get("schedular").get("cron_hour"))
-                cron_minutes = self.list_int2str(schedular_form.get("schedular").get("cron_minutes"))
+                cron_month = self.list_int2str(scheduler_form.get("schedular").get("cron_month"))
+                cron_day_of_month = self.list_int2str(scheduler_form.get("schedular").get("cron_day_of_month"))
+                cron_hour = self.list_int2str(scheduler_form.get("schedular").get("cron_hour"))
+                cron_minutes = self.list_int2str(scheduler_form.get("schedular").get("cron_minutes"))
                 dic = {
                     'project_id': project.id,
                     'run_type': "periodic",
@@ -165,7 +164,7 @@ class SchedulerSrv(object):
                     'cron_day_of_month': cron_day_of_month,
                     'cron_hour': cron_hour,
                     'cron_minutes': cron_minutes,
-                    "desc": schedular_form.get("schedular").get("description"),
+                    "desc": scheduler_form.get("schedular").get("description"),
                     "config": args.get("config")
                 }
 

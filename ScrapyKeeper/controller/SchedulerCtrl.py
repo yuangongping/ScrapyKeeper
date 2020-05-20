@@ -2,8 +2,6 @@
 from flask_restful import Resource, reqparse
 from ScrapyKeeper.service.SchedulerSrv import SchedulerSrv
 from ScrapyKeeper.utils.format_result import success_res, error_res
-import json
-
 
 
 class SchedulerCtrl(Resource):
