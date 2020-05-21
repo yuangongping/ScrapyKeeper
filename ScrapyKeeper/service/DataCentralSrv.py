@@ -17,7 +17,7 @@ class DataCentralSrv:
         # TODO 更新运行率
         # projectSrv.update_all_spider_running_status()
         # project_running_status = projectSrv.statistical_running_status()
-        log_errors = LogManageSrv.log_count()
+        log_errors = ElkLogSrv.log_count()
         log_status = {
             "normal": 0,
             "error": 0
