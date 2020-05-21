@@ -9,9 +9,9 @@ import logging
 import os
 from threading import Lock
 
-from flask import Flask, send_from_directory, render_template
+from flask import Flask, send_from_directory, render_template, jsonify
 from flask_cors import CORS
-from flask_restful import Api
+from flask_restful import Api, abort
 from ScrapyKeeper import config
 from apscheduler.schedulers.background import BackgroundScheduler
 ram_scheduler = BackgroundScheduler()
@@ -31,6 +31,22 @@ handler = logging.StreamHandler()
 handler.setFormatter(formatter)
 app.logger.setLevel(app.config.get('LOG_LEVEL', "INFO"))
 app.logger.addHandler(handler)
+
+
+@app.errorhandler(Exception)
+def internal_error(error):
+    print(error)
+    abort(500, message=str(error))
+
+
+@app.errorhandler(404)
+def handle_404_error(err):
+    """自定义的处理错误方法"""
+    # 这个函数的返回值会是前端用户看到的最终结果
+    return jsonify({
+        'code': 404,
+        'message': 'not found'
+    })
 
 @app.route('/')
 def index():
