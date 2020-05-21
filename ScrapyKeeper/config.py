@@ -7,8 +7,7 @@
 # @contact : xie-hong-tao@qq.com
 
 # dev
-
-SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:root@localhost/scrapykeeper'
+SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:root@172.16.13.22:3306/scrapykeeper'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 SQLALCHEMY_POOL_RECYCLE = 30
 

@@ -1,4 +1,5 @@
 import datetime
+import time
 
 
 def get_near_ndays(days=7):
@@ -12,5 +13,16 @@ def get_near_ndays(days=7):
     return res
 
 
-a = [1,2]
-b = a[:50]
+def get_running_time(start_time, end_time)-> int:
+    if start_time == "None" and end_time == "None":
+        return 0
+    elif start_time != "None" and end_time == "None":
+        start_time_stramp = int(time.mktime(time.strptime(start_time, "%Y-%m-%d %H:%M:%S")))
+        end_time_stramp = int(time.time())
+        return int((end_time_stramp - start_time_stramp)/60)
+    elif start_time != "None" and end_time != "None":
+        start_time_stramp = int(time.mktime(time.strptime(start_time, "%Y-%m-%d %H:%M:%S")))
+        end_time_stramp = int(time.mktime(time.strptime(end_time, "%Y-%m-%d %H:%M:%S")))
+        return int((end_time_stramp - start_time_stramp)/60)
+    else:
+        return 0

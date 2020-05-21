@@ -9,7 +9,6 @@ from typing import List
 
 from flask_restful import abort
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import DateTime, Date, Numeric
 import base64
 from ScrapyKeeper import app
 from sqlalchemy import DateTime, Date, Numeric, LargeBinary
@@ -29,20 +28,21 @@ def teardown_request(exception):
 class Base(db.Model):
     __abstract__ = True
 
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     date_created = db.Column(db.DateTime, default=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
     date_modified = db.Column(db.DateTime, default=datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
                               onupdate=db.func.current_timestamp())
 
-    def to_dict(self) -> "dict":
+    def to_dict(self, base_time=False) -> "dict":
         dic = {}
         for column in self.__table__.columns:
-            if column.name in ['date_created', 'date_modified']:
-                continue
+            if not base_time:
+                if column.name in ['date_created', 'date_modified']:
+                    continue
             value = getattr(self, column.name)
             if isinstance(column.type, Date):
-                value = value.strftime('%Y-%m-%d')
-            elif isinstance(column.type, DateTime):
+                value = value.strftime('%Y-%m-%d') and value
+            elif isinstance(column.type, DateTime) and value:
                 value = value.strftime('%Y-%m-%d %H:%M:%S')
             elif isinstance(column.type, Numeric):
                 value = float(value)

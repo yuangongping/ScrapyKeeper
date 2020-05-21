@@ -11,7 +11,7 @@ from ScrapyKeeper.model import db, Base
 
 
 class ServerMachine(Base):
-    __tabelename__ = 'sk_server_machine'
+    __tabelename__ = 'server_machine'
     url = db.Column(db.String(50), primary_key=True)
     status = db.Column(db.SmallInteger, default=1)  # 1启动 0禁用
     is_master = db.Column(db.SmallInteger, primary_key=True)  # 1主 2从

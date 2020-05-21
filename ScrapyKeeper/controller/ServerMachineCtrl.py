@@ -8,6 +8,7 @@ from ScrapyKeeper.agent.ScrapyAgent import ScrapyAgent
 from ScrapyKeeper.service.ServerMachineSrv import ServerMachineSrv
 from ScrapyKeeper.utils import success_res, error_res
 
+
 class ServerMachineCtrl(Resource):
     def get(self):
         """ 列出所有的服务器信息 """
@@ -44,8 +45,11 @@ class ServerMachineCtrl(Resource):
         parser.add_argument('url', required=True, type=str)
         parser.add_argument('is_master', required=True, type=int)
         parser.add_argument('status', required=True, type=int)
+        parser.add_argument('date_created', type=str)
+        parser.add_argument('date_modified', type=str)
         args = parser.parse_args(strict=True)
-
+        args.pop("date_created")
+        args.pop("date_modified")
         data = ServerMachineSrv.save(args)
         return success_res(data)
 

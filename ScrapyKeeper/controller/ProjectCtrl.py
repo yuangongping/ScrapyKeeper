@@ -8,8 +8,8 @@ from ScrapyKeeper.utils.format_result import success_res, error_res
 
 
 class ProjectCtrl(Resource):
-    srv = ProjectSrv()
-
+    def __init__(self):
+        self.srv = ProjectSrv()
 
     def get(self):
         parser = reqparse.RequestParser()
@@ -19,8 +19,12 @@ class ProjectCtrl(Resource):
         parser.add_argument('status', type=str)
         parser.add_argument('project_name_zh', type=str)
         parser.add_argument('project_name', type=str)
+        parser.add_argument('type', type=str)
         args = parser.parse_args()
-        data = self.srv.list_projects(args=args)
+        if args.get("type") == "info":
+            data = self.srv.get_project_by_name(project_name=args.get("project_name"))
+        else:
+            data = self.srv.list_projects(args=args)
         return success_res(data)
 
     def post(self):
@@ -53,8 +57,8 @@ class ProjectCtrl(Resource):
 
     def delete(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('id', required=True, type=int)
+        parser.add_argument('project_id', required=True, type=int)
         parser.add_argument('project_name', required=True, type=str)
         args = parser.parse_args(strict=True)
-        msg = self.srv.del_projects(**args)
+        msg = self.srv.del_project(**args)
         return success_res(msg)

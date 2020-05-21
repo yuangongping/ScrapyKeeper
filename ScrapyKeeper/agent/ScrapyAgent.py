@@ -48,8 +48,8 @@ class ScrapyAgent(object):
             "spider_list": spider_list
         }
 
-    def start_spider(self, project_name, spider_name):
-        return self.scrapyd_api.schedule(project_name, spider_name)
+    def start_spider(self, project_name, spider_name, settings=None, **kwargs):
+        return self.scrapyd_api.schedule(project_name, spider_name, settings, **kwargs)
 
     def cancel_spider(self, project_name, job_id):
         return self.scrapyd_api.cancel(project_name, job_id)
@@ -67,6 +67,7 @@ class ScrapyAgent(object):
                 } if spider_num else False
         except Exception as err:
             return str(err)
+
 
     def log_url(self, project_name, spider_name, job_id):
         return '{}/logs/{}/{}/{}'\

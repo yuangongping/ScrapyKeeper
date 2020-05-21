@@ -1,7 +1,7 @@
 import psutil
 import datetime
 from ScrapyKeeper.service.ProjectSrv import ProjectSrv
-from ScrapyKeeper.service.LogManageSrv import LogManageSrv
+from ScrapyKeeper.service.ElkLogSrv import ElkLogSrv
 from ScrapyKeeper.model.Project import db, Project
 from ScrapyKeeper.model.DataStorage import DataStorage
 from sqlalchemy import func
@@ -17,7 +17,7 @@ class DataCentralSrv:
         # TODO 更新运行率
         # projectSrv.update_all_spider_running_status()
         # project_running_status = projectSrv.statistical_running_status()
-        log_errors = LogManageSrv.log_count()
+        log_errors = ElkLogSrv.log_count()
         log_status = {
             "normal": 0,
             "error": 0
@@ -28,6 +28,7 @@ class DataCentralSrv:
                     log_status["error"] += 1
                 else:
                     log_status["normal"] += 1
+
         data = {
             "cupStatus": {
                 "used": cpu_used,

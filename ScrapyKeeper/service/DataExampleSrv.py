@@ -8,6 +8,7 @@ from sqlalchemy.orm import sessionmaker
 from flask_restful import abort
 from sqlalchemy import DateTime, Date, Numeric
 import demjson
+from ScrapyKeeper.model.Scheduler import Scheduler
 
 
 class DataExampleSrv(object):
@@ -30,14 +31,14 @@ class DataExampleSrv(object):
     @classmethod
     def data_example(cls, args: dict):
         try:
-            mysql_config = demjson.decode(args.get('tpl_input'))
-            mysql_url = 'mysql+pymysql://{}:{}@{}:{}/{}' .format(
-                mysql_config.get('mysql_username')['value'],
-                mysql_config.get('mysql_password')['value'],
-                mysql_config.get('mysql_host')['value'],
-                mysql_config.get('mysql_port')['value'],
-                mysql_config.get('mysql_dbname')['value']
-            )
+            scheduler = Scheduler.query.filter_by(project_id=args.get("project_id")).first()
+            storage_management_form = demjson.decode(demjson.decode(scheduler.config).get("storage_management_form"))
+            usrename = storage_management_form.get("storage_content").get("username", 'root')
+            password = storage_management_form.get("storage_content").get("password", 'root')
+            host = storage_management_form.get("storage_content").get("ip", '10.5.9.110')
+            port = storage_management_form.get("storage_content").get("port", 3306)
+            db_name = storage_management_form.get("storage_content").get("dbname", 'duocaiyuanspider')
+            mysql_url = 'mysql+pymysql://{}:{}@{}:{}/{}' .format(usrename, password, host, port, db_name)
             engine = create_engine(mysql_url)
             mysql_base = automap_base()  # 自动创建类
             mysql_base.prepare(engine, reflect=True)

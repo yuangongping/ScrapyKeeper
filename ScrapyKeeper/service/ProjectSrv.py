@@ -8,8 +8,6 @@
 import os
 import tempfile
 import time
-from typing import BinaryIO
-
 from werkzeug.utils import secure_filename
 from xpinyin import Pinyin
 from flask_restful import abort
@@ -20,11 +18,11 @@ from ScrapyKeeper.model.Scheduler import Scheduler
 from ScrapyKeeper.model.Spider import Spider, db
 from ScrapyKeeper.code_template.ScrapyGenerator import ScrapyGenerator
 from ScrapyKeeper.utils.ThreadWithResult import ThreadWithResult
-from ScrapyKeeper.service.LogManageSrv import LogManageSrv
+from ScrapyKeeper.service.ElkLogSrv import ElkLogSrv
 from sqlalchemy import and_
-from scrapyd_api import ScrapydAPI
-
-
+from ScrapyKeeper.model.JobExecution import JobExecution
+from ScrapyKeeper.utils.date_tools import get_running_time
+from ScrapyKeeper.service.SchedulerSrv import SchedulerSrv
 
 class DistributeRes(object):
     def __init__(self):
@@ -88,7 +86,6 @@ class ProjectSrv(object):
 
     def add_project_by_template(self, tpl_name: str, tpl_args: dict):
         self.if_exist(tpl_args['project_name'])
-
         egg_path = ScrapyGenerator.gen(tpl_name, **tpl_args)
         if egg_path.get('master') is not None:
             # 分布式
@@ -147,12 +144,12 @@ class ProjectSrv(object):
             return proj_db
         abort(500, message="部署失败")
 
-
     def edit_project(self, **kwargs):
         return Project.save(dic=kwargs)
 
     def list_projects(self, args: dict):
         exp_list = []
+        """整合查询参数条件，构造数据库查询"""
         if args.get("project_name_zh"):
             words = args.get("project_name_zh").split(' ')
             for word in words:
@@ -169,17 +166,21 @@ class ProjectSrv(object):
             pagination = Project.query.filter(filter_exp).order_by(order_exp).paginate(
                 args.get("page_index"), args.get("page_szie"), error_out=False)
         else:
-            pagination = Project.query.order_by(order_exp).paginate(args.get("page_index"), args.get("page_size"), error_out=False)
-
+            pagination = Project.query.order_by(order_exp).paginate(
+                args.get("page_index"),
+                args.get("page_size"),
+                error_out=False
+            )
         projects = pagination.items
+        """更新工程的spider信息"""
         self.update_spider_status(projects)
 
+        """通过ELK日志分析系统， 获取工程的日志错误信息"""
         data = []
         for project in projects:
-            proj = project.to_dict()
-            proj["error"] = 0
+            proj = project.to_dict(base_time=True)
+            proj["error"] = 1
             data.append(proj)
-
         return {"total": pagination.total, "data": data}
 
         # log_error_list = LogManageSrv.log_count()
@@ -198,7 +199,36 @@ class ProjectSrv(object):
         #
         # return {"total": pagination.total, "data": data}
 
-    def del_projects(self, **kwargs):
+    def get_project_by_name(self, project_name):
+        project = Project.query.filter_by(project_name=project_name).first()
+        project_dict = project.to_dict(base_time=True)
+        jobs = JobExecution.query.filter_by(
+            project_id=project_dict.get("id"),
+            node_type="slave"
+            ).group_by(
+                JobExecution.scheduler_id
+            ).all()
+        project_dict["task_num"] = len(jobs)
+        job_list = []
+        for job in jobs:
+            job_dict = job.to_dict(base_time=True)
+            if job.start_time and job.end_time:
+                job_dict["status"] = "已完成"
+            elif job.start_time and not job.end_time:
+                job_dict["status"] = "运行中"
+            else:
+                job_dict["status"] = "队列中"
+            job_dict["running_time"] = get_running_time(str(job.start_time), str(job.end_time))
+            job_list.append(job_dict)
+        project_dict["task_list"] = job_list
+        return project_dict
+
+    def del_project(self, **kwargs):
+        # 先取消该工程下所有运行的项目
+        jobs = JobExecution.query.filter_by(project_id=kwargs.get("project_id")).all()
+        schedulerSrv =  SchedulerSrv()
+        for job in jobs:
+            schedulerSrv.cancel_running_project({"scheduler_id": job.scheduler_id})
         # 删除srcapyd主服务器的指定工程下的所有版本
         res = self.distribute_in_multi_thread(func='del_project',
                                               master_args=(kwargs['project_name'],),
@@ -211,8 +241,11 @@ class ProjectSrv(object):
             abort(500, message="删除从节点时出现错误！")
 
         # 删除系统上的数据库
-        Project.delete(filters={"id": kwargs['id']})
-        Spider.delete(filters={"project_id": kwargs['id']})
+        Project.delete(filters={"id": kwargs['project_id']})
+        Spider.delete(filters={"project_id": kwargs['project_id']})
+        Scheduler.delete(filters={"project_id": kwargs['project_id']})
+        path = os.path.dirname(os.path.dirname(__file__)) + '/code_template/target/'
+        # shutil.rmtree()
         return "已删除工程！"
 
     def deploy(self, project: dict, egg_path_master: str, egg_path_slave: str = None) -> bool:
@@ -278,3 +311,6 @@ class ProjectSrv(object):
             "waitting": len(total) - len(running),
             "running": len(running)
         }
+
+
+
