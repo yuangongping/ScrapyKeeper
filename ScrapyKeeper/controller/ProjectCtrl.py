@@ -56,8 +56,8 @@ class ProjectCtrl(Resource):
 
     def delete(self):
         parser = reqparse.RequestParser()
-        parser.add_argument('id', required=True, type=int)
+        parser.add_argument('project_id', required=True, type=int)
         parser.add_argument('project_name', required=True, type=str)
         args = parser.parse_args(strict=True)
-        msg = self.srv.del_projects(**args)
+        msg = self.srv.del_project(**args)
         return success_res(msg)

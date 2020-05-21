@@ -2,7 +2,7 @@
 from flask_restful import Resource, reqparse
 from ScrapyKeeper.service.DataStorageSrv import DataStorageSrv
 from ScrapyKeeper.utils.format_result import success_res, error_res
-from flask_restful import request
+from flask_restful import request, abort
 
 
 class DataStorageCtrl(Resource):
@@ -32,14 +32,16 @@ class DataStorageCtrl(Resource):
             dataStorageSrv.add(
                 scheduler_id=args.get("scheduler_id"),
                 scrapyd_url=scrapyd_url,
-                num=args.get("num", 200),
-                file_size=args.get("file_size", 0)
+                num=args.get("num"),
+                file_size=args.get("file_size")
             )
-        else:
+        elif args.get("type") == "statistics":
             dataStorageSrv.add(
                 scheduler_id=args.get("scheduler_id"),
                 scrapyd_url=scrapyd_url,
-                num=args.get("num", 200),
-                file_size=args.get("file_size", 0)
+                num=args.get("num"),
+                file_size=args.get("file_size")
             )
-        return success_res("")
+        else:
+          abort(400, message="type参数错误！")
+        return success_res()

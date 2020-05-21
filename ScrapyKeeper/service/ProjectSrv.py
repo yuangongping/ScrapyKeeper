@@ -20,8 +20,9 @@ from ScrapyKeeper.code_template.ScrapyGenerator import ScrapyGenerator
 from ScrapyKeeper.utils.ThreadWithResult import ThreadWithResult
 from ScrapyKeeper.service.LogManageSrv import LogManageSrv
 from sqlalchemy import and_
-import shutil
-
+from ScrapyKeeper.model.JobExecution import JobExecution
+from ScrapyKeeper.utils.date_tools import get_running_time
+from ScrapyKeeper.service.SchedulerSrv import SchedulerSrv
 
 class DistributeRes(object):
     def __init__(self):
@@ -132,7 +133,7 @@ class ProjectSrv(object):
         proj = {
                 'is_msd': 1,
                 'project_name': name_en,
-                'project_name_zh': project_name_zh
+                'project_name_zh': project_name_zh,
             }
 
         deploy_status = self.deploy(
@@ -182,7 +183,7 @@ class ProjectSrv(object):
         data = []
         for project in projects:
             proj = project.to_dict(base_time=True)
-            proj["error"] = 0
+            proj["error"] = 1
             data.append(proj)
         return {"total": pagination.total, "data": data}
 
@@ -205,9 +206,33 @@ class ProjectSrv(object):
     def get_project_by_project_name(self, project_name_zh):
         project = Project.query.filter_by(project_name_zh=project_name_zh).first()
         project_dict = project.to_dict(base_time=True)
+        jobs = JobExecution.query.filter_by(
+            project_id=project_dict.get("id"),
+            node_type="slave"
+            ).group_by(
+                JobExecution.scheduler_id
+            ).all()
+        project_dict["task_num"] = len(jobs)
+        job_list = []
+        for job in jobs:
+            job_dict = job.to_dict(base_time=True)
+            if job.start_time and job.end_time:
+                job_dict["status"] = "已完成"
+            elif job.start_time and not job.end_time:
+                job_dict["status"] = "运行中"
+            else:
+                job_dict["status"] = "队列中"
+            job_dict["running_time"] = get_running_time(str(job.start_time), str(job.end_time))
+            job_list.append(job_dict)
+        project_dict["task_list"] = job_list
         return project_dict
 
-    def del_projects(self, **kwargs):
+    def del_project(self, **kwargs):
+        # 先取消该工程下所有运行的项目
+        jobs = JobExecution.query.filter_by(project_id=kwargs.get("project_id")).all()
+        schedulerSrv =  SchedulerSrv()
+        for job in jobs:
+            schedulerSrv.cancel_running_project({"scheduler_id": job.scheduler_id})
         # 删除srcapyd主服务器的指定工程下的所有版本
         res = self.distribute_in_multi_thread(func='del_project',
                                               master_args=(kwargs['project_name'],),
@@ -220,9 +245,9 @@ class ProjectSrv(object):
             abort(500, message="删除从节点时出现错误！")
 
         # 删除系统上的数据库
-        Project.delete(filters={"id": kwargs['id']})
-        Spider.delete(filters={"project_id": kwargs['id']})
-        Scheduler.delete(filters={"project_id": kwargs['id']})
+        Project.delete(filters={"id": kwargs['project_id']})
+        Spider.delete(filters={"project_id": kwargs['project_id']})
+        Scheduler.delete(filters={"project_id": kwargs['project_id']})
         path = os.path.dirname(os.path.dirname(__file__)) + '/code_template/target/'
         # shutil.rmtree()
         return "已删除工程！"

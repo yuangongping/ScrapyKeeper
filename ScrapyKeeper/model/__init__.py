@@ -41,8 +41,8 @@ class Base(db.Model):
                     continue
             value = getattr(self, column.name)
             if isinstance(column.type, Date):
-                value = value.strftime('%Y-%m-%d')
-            elif isinstance(column.type, DateTime):
+                value = value.strftime('%Y-%m-%d') and value
+            elif isinstance(column.type, DateTime) and value:
                 value = value.strftime('%Y-%m-%d %H:%M:%S')
             elif isinstance(column.type, Numeric):
                 value = float(value)

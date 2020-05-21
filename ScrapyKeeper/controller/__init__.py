@@ -5,3 +5,5 @@
 # @Software: PyCharm
 # @Author  : Taoz
 # @contact : xie-hong-tao@qq.com
+import time
+print(time.strptime("2020-02-12 12:15:14", "%Y-%m-%d %H:%M:%S"))

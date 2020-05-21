@@ -37,15 +37,19 @@ class DataStorageSrv:
         return [{"日期": item[0], "入库量": int(item[1])} for item in data]
 
     def update_start_time(self, scheduler_id=None, scrapyd_url=None):
-        JobExecution.query.filter_by(
+        job = JobExecution.query.filter_by(
             scheduler_id=scheduler_id,
             scrapyd_url=scrapyd_url
-        ).update({'start_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
+        ).first()
+        job.start_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        db.session.commit()
 
     def update_end_time(self, scheduler_id=None, scrapyd_url=None):
-        JobExecution.query.filter_by(
+        job = JobExecution.query.filter_by(
             scheduler_id=scheduler_id,
             scrapyd_url=scrapyd_url
-        ).update({'end_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
+        ).first()
+        job.end_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        db.session.commit()
 
 
