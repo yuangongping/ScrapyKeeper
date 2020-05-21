@@ -79,20 +79,15 @@ class ProjectSrv(object):
                 print(e)
         return distri_res
 
-    def gen_name(self, name_zh: str) -> str:
-        pinyin = Pinyin()
-        name_en = pinyin.get_pinyin(name_zh)
-        name = ''.join(name_en.split("-"))
-
-        # TODO: 前端通过中文生成项目英文名并提交，存在相同英文名的时候，提醒用户自己手动修改英文名
+    def if_exist(self, name) -> str:
         exist = Project.find_by_name(name)
         if exist:
-            abort(400, message="存在相同的工程名称，请重新命名")
+            abort(400, message="存在相同的工程标识，请手动修改工程名")
         else:
             return name
 
     def add_project_by_template(self, tpl_name: str, tpl_args: dict):
-        tpl_args['project_name'] = self.gen_name(tpl_args['project_name_zh'])
+        self.if_exist(tpl_args['project_name'])
 
         egg_path = ScrapyGenerator.gen(tpl_name, **tpl_args)
         if egg_path.get('master') is not None:
@@ -122,8 +117,9 @@ class ProjectSrv(object):
             abort(500, message="部署失败")
         abort(500, message="生成工程失败")
 
-    def add_project(self, project_name_zh: str, master_egg, slave_egg=None):
-        name_en = self.gen_name(project_name_zh)
+    def add_project(self, project_name, project_name_zh: str, master_egg, slave_egg=None):
+        self.if_exist(project_name)
+
         master_filename = secure_filename(master_egg.filename)  # 获取master文件名
         slave_filename = secure_filename(slave_egg.filename)  # 获取slave文件名
 
@@ -135,7 +131,7 @@ class ProjectSrv(object):
 
         proj = {
                 'is_msd': 1,
-                'project_name': name_en,
+                'project_name': project_name,
                 'project_name_zh': project_name_zh
             }
 
@@ -147,7 +143,7 @@ class ProjectSrv(object):
 
         if deploy_status:
             proj_db = Project.save(proj)
-            self.sync_spiders(name_en)
+            self.sync_spiders(project_name)
             return proj_db
         abort(500, message="部署失败")
 
