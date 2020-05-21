@@ -8,8 +8,6 @@ from ScrapyKeeper.utils.format_result import success_res, error_res
 
 class DataExampleCtrl(Resource):
     def post(self):
-        print("222222222222222222222222222222222")
-        print()
         parser = reqparse.RequestParser()
         parser.add_argument('project_id', required=True, type=int)
         parser.add_argument('project_name', required=True, type=str)

@@ -16,7 +16,6 @@ class RedisSrv(object):
             port=storage_management_form.get("redis").get("port"),
             db=0)
         redis = self.redis.StrictRedis(connection_pool=pool)
-        print(args.get("project_name"))
         total = redis.scard(args.get("project_name"))
         data = redis.smembers(args.get("project_name"))
         data = list(data)[:20]

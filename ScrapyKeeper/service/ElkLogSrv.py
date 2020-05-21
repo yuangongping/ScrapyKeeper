@@ -8,7 +8,7 @@ from flask import abort
 from ScrapyKeeper import app
 
 
-class LogManageSrv(object):
+class ElkLogSrv(object):
     @classmethod
     def es_connection(cls):
         """ 连接elasticsearch数据库 """

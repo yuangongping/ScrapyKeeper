@@ -8,7 +8,7 @@ from ScrapyKeeper.model.JobExecution import JobExecution
 from ScrapyKeeper.model.Spider import Spider
 
 
-class OriginalLogSrv(object):
+class ScrapydLogSrv(object):
     def __init__(self):
         master_url = ServerMachine.master_url()
         if master_url is None:
@@ -20,7 +20,6 @@ class OriginalLogSrv(object):
     def view_master_log(self, scheduler_id: int):
         filters = {"scheduler_id": scheduler_id, "node_type": "master"}
         jobExe = JobExecution.query.filter_by(**filters).first()
-        print(jobExe)
         spider = Spider.query.filter_by(project_id=jobExe.project_id, type=jobExe.node_type).first()
         log_url = self.master_agent.log_url(
             spider.project_name,

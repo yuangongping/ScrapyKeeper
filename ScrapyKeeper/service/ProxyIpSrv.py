@@ -45,8 +45,6 @@ class ProxyIpSrv(BaseSrv):
         else:
             req_url = url
 
-        print('-----   req url ', req_url)
-
         if method == 'GET':  # 如果是get请求
             response = requests.get(req_url, headers=self.list_to_dict(headers))
         else:  # post 请求

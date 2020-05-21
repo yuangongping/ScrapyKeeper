@@ -22,7 +22,7 @@ class ProjectCtrl(Resource):
         parser.add_argument('type', type=str)
         args = parser.parse_args()
         if args.get("type") == "info":
-            data = self.srv.get_project_by_project_name(project_name_zh=args.get("project_name_zh"))
+            data = self.srv.get_project_by_name(project_name=args.get("project_name"))
         else:
             data = self.srv.list_projects(args=args)
         return success_res(data)
@@ -31,20 +31,21 @@ class ProjectCtrl(Resource):
         if request.form.get('template'):
             parser = reqparse.RequestParser()
             parser.add_argument('project_name_zh', required=True, type=str)
+            parser.add_argument('project_name', required=True, type=str)
             parser.add_argument('template', type=str)
-            # parser.add_argument('tpl_input', required=True, type=str)
+            parser.add_argument('tpl_input', type=str)
             args = parser.parse_args()
-            args['tpl_input'] = '{}'
             tmpl = args.pop('template')
             args["category"] = tmpl
             data = self.srv.add_project_by_template(tpl_name=tmpl, tpl_args=args)
         else:
             parser = reqparse.RequestParser()
+            parser.add_argument('project_name', required=True, type=str)
             parser.add_argument('project_name_zh', required=True, type=str)
             parser.add_argument('master_egg', required=True, type=FileStorage, location='files')
             parser.add_argument('slave_egg', type=FileStorage, location='files')
             args = parser.parse_args()
-            data = self.srv.add_project(args['project_name_zh'], args['master_egg'], args.get('slave_egg'))
+            data = self.srv.add_project(args['project_name'], args['project_name_zh'], args['master_egg'], args.get('slave_egg'))
         return success_res(data)
 
     def put(self):

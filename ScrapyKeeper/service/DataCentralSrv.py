@@ -1,7 +1,7 @@
 import psutil
 import datetime
 from ScrapyKeeper.service.ProjectSrv import ProjectSrv
-from ScrapyKeeper.service.LogManageSrv import LogManageSrv
+from ScrapyKeeper.service.ElkLogSrv import ElkLogSrv
 from ScrapyKeeper.model.Project import db, Project
 from ScrapyKeeper.model.DataStorage import DataStorage
 from sqlalchemy import func

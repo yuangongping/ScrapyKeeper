@@ -2,15 +2,15 @@
 # -*- coding:utf-8 -*-
 # Author:chenlincui
 from flask_restful import Resource, reqparse
-from ScrapyKeeper.service.LogManageSrv import LogManageSrv
+from ScrapyKeeper.service.ElkLogSrv import ElkLogSrv
 
 from ScrapyKeeper.utils import success_res
 
 
-class LogManageCtrl(Resource):
+class ElkLogCtrl(Resource):
     def get(self):
         """ 计算各项目的错误日志数, 用于提示哪些项目有错误日志, 错误日志数大于0的项目将有预警标识 """
-        data = LogManageSrv.log_count()
+        data = ElkLogSrv.log_count()
         return success_res(data)
 
     def post(self):
@@ -21,7 +21,7 @@ class LogManageCtrl(Resource):
         parser.add_argument('page_size', type=int, default=5)
         args = parser.parse_args(strict=True)
 
-        data = LogManageSrv.log_messages(
+        data = ElkLogSrv.log_messages(
             project_name=args.get("project_name"),
             page=args.get("page"),
             page_size=args.get("page_size")
@@ -34,7 +34,7 @@ class LogManageCtrl(Resource):
         parser.add_argument('project_name', required=True, type=str)
         args = parser.parse_args(strict=True)
 
-        LogManageSrv.log_delete(
+        ElkLogSrv.log_delete(
             project_name=args.get("project_name")
         )
         return success_res()
