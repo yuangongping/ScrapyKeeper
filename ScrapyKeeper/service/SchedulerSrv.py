@@ -45,60 +45,62 @@ class SchedulerSrv(object):
             )
 
     def start_up_project(self, project_name: str, project_id: int, scheduler_id=None, run_type=None):
-        try:
-            # 通过工程找到对应的爬虫实例
-            spiders = Spider.query.filter_by(**{"project_id": project_id}).all()
-            scheduler = Scheduler.query.filter_by(id=scheduler_id).first()
-            scrapyd_job_id = []
-            for spider in spiders:
-                if spider.type == "master":
-                    _project_name = project_name + "_master" 
+        # 通过工程找到对应的爬虫实例
+        spiders = Spider.query.filter_by(**{"project_id": project_id}).all()
+        scheduler = Scheduler.query.filter_by(id=scheduler_id).first()
+        scrapyd_job_id = []
+        for spider in spiders:
+            if spider.type == "master":
+                _project_name = project_name + "_master"
+                settings = get_settings(scheduler.config, _project_name, scheduler_id, project_name)
+                master_job_id = self.master_agent.start_spider(
+                    spider.project_name,
+                    spider.name,
+                    scheduler_id=scheduler_id,
+                    settings=settings
+                )
+                if not master_job_id:
+                    raise ConnectionError('run master spider %s start job failed !' % spider.name)
+
+                scrapyd_job_id.append(master_job_id)
+                # 启动成功后， 更新爬虫实例的job_id
+                spider.job_id = master_job_id
+                db.session.commit()
+                dic = {
+                    "project_id": project_id,
+                    "scrapyd_job_id": master_job_id,
+                    "scheduler_id": scheduler_id,
+                    "scrapyd_url": self.master_agent.server_url,
+                    "node_type": "master",
+                    "run_type": run_type
+                }
+                JobExecution.save(dic=dic)
+            else:
+                for agent in self.slave_agents:
+                    _project_name = project_name + "_slave"
                     settings = get_settings(scheduler.config, _project_name, scheduler_id, project_name)
-                    master_job_id = self.master_agent.start_spider(
-                        spider.project_name,
-                        spider.name,
-                        scheduler_id=scheduler_id,
-                        settings=settings
-                    )
-                    scrapyd_job_id.append(master_job_id)
-                    # 启动成功后， 更新爬虫实例的job_id
-                    spider.job_id = master_job_id
-                    db.session.commit()
-                    dic = {
-                        "project_id": project_id,
-                        "scrapyd_job_id": master_job_id,
-                        "scheduler_id": scheduler_id,
-                        "scrapyd_url": self.master_agent.server_url,
-                        "node_type": "master",
-                        "run_type": run_type
-                    }
-                    JobExecution.save(dic=dic)
-                else:
-                    for agent in self.slave_agents:
-                        _project_name = project_name + "_slave"
-                        settings = get_settings(scheduler.config, _project_name, scheduler_id, project_name)
-                        if agent.server_url == spider.address:
-                            slave_job_id = agent.start_spider(
-                                spider.project_name,
-                                spider.name,
-                                scheduler_id=scheduler_id,
-                                settings=settings
-                            )
-                            scrapyd_job_id.append(slave_job_id)
-                            spider.job_id = slave_job_id
-                            db.session.commit()
-                            dic = {
-                                "project_id": project_id,
-                                "scrapyd_job_id": slave_job_id,
-                                 "scheduler_id": scheduler_id,
-                                "scrapyd_url": agent.server_url,
-                                "node_type": "slave",
-                                "run_type": run_type
-                            }
-                            JobExecution.save(dic=dic)
-            return True
-        except:
-            return None
+                    if agent.server_url == spider.address:
+                        slave_job_id = agent.start_spider(
+                            spider.project_name,
+                            spider.name,
+                            scheduler_id=scheduler_id,
+                            settings=settings
+                        )
+                        if not slave_job_id:
+                            raise ConnectionError('slave spider %s start job failed !' % spider.name)
+                        scrapyd_job_id.append(slave_job_id)
+                        spider.job_id = slave_job_id
+                        db.session.commit()
+                        dic = {
+                            "project_id": project_id,
+                            "scrapyd_job_id": slave_job_id,
+                            "scheduler_id": scheduler_id,
+                            "scrapyd_url": agent.server_url,
+                            "node_type": "slave",
+                            "run_type": run_type
+                        }
+                        JobExecution.save(dic=dic)
+        return True
 
     def cancel_running_project(self,  args: dict):
         try:

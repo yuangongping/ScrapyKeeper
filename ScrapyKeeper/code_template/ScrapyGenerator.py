@@ -55,7 +55,7 @@ class ScrapyGenerator(object):
 
     @classmethod
     def gen(cls, template: str, **kwargs) -> dict:
-        cls.create_scrapy_project(template, **kwargs)
+        cls.create_scrapy_project(template=template, **kwargs)
         return cls.create_egg(template=template, project_name=kwargs['project_name'])
 
 
