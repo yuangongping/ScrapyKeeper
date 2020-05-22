@@ -12,7 +12,7 @@ def get_settings(config_str, project_name, scheduler_id, root_project_name):
     settings = {
         "MYEXT_ENABLED": True,
         "IDLE_NUMBER": 10,
-        "LOG_LEVEL": "INFO",
+        "LOG_LEVEL":  crawl_stratege_form.get("log_level", "INFO"),
         "RETRY_ENABLED": True,
         "RETRY_TIMES": download_params_form.get("reapt_num", 1),
         "CONCURRENT_REQUESTS": download_params_form.get("request_num", 8),
@@ -41,7 +41,8 @@ def get_settings(config_str, project_name, scheduler_id, root_project_name):
         "MIDDLEWARES_PROXY_OPEN": True if download_params_form.get("ip_proxy") == 2 else False,
         "PROXY_CENTER_URL": download_params_form.get("PROXY_CENTER_URL"),
         "SEED_LIST": demjson.encode(SEED_LIST),
-        "SCHEDULER_DUPEFILTER_KEY": '{}:dupefilter'.format(root_project_name)
+        "SCHEDULER_DUPEFILTER_KEY": '{}:dupefilter'.format(root_project_name),
+        "SCHEDULER_PERSIST": "False"
     }
 
     # 如果深度优先

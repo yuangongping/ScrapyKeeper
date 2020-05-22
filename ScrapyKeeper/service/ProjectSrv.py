@@ -24,6 +24,7 @@ from ScrapyKeeper.model.JobExecution import JobExecution
 from ScrapyKeeper.utils.date_tools import get_running_time
 from ScrapyKeeper.service.SchedulerSrv import SchedulerSrv
 
+
 class DistributeRes(object):
     def __init__(self):
         self._master = None
@@ -221,6 +222,12 @@ class ProjectSrv(object):
             job_dict["running_time"] = get_running_time(str(job.start_time), str(job.end_time))
             job_list.append(job_dict)
         project_dict["task_list"] = job_list
+        "获取周期任务列表"
+        schedulers = Scheduler.query.filter_by(
+            project_id=project_dict.get("id"),
+            run_type="periodic"
+        ).all()
+        project_dict["scheduler_list"] = [sch.to_dict() for sch in schedulers]
         return project_dict
 
     def del_project(self, **kwargs):
@@ -244,6 +251,7 @@ class ProjectSrv(object):
         Project.delete(filters={"id": kwargs['project_id']})
         Spider.delete(filters={"project_id": kwargs['project_id']})
         Scheduler.delete(filters={"project_id": kwargs['project_id']})
+        JobExecution.delete(filters={"project_id": kwargs['project_id']})
         path = os.path.dirname(os.path.dirname(__file__)) + '/code_template/target/'
         # shutil.rmtree()
         return "已删除工程！"

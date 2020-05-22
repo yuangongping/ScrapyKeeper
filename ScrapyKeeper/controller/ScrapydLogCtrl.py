@@ -15,5 +15,5 @@ class ScrapydLogCtrl(Resource):
             data = originalLogSrv.view_master_log(scheduler_id=args.get("scheduler_id"))
             return success_res(data)
         else:
-            data = originalLogSrv.view_master_log(scheduler_id=args.get("scheduler_id"))
+            data = originalLogSrv.view_slave_log(scheduler_id=args.get("scheduler_id"))
             return success_res(data)

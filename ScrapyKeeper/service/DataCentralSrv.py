@@ -11,38 +11,7 @@ from ScrapyKeeper import app
 
 class DataCentralSrv:
     def get(self):
-        cpu_used = self.get_cpu_state()
-        memorystate = self.getMemorystate()
-        projects_list = [project.project_name for project in Project.query.all()]
-        # TODO 更新运行率
-        # projectSrv.update_all_spider_running_status()
-        # project_running_status = projectSrv.statistical_running_status()
-        log_errors = ElkLogSrv.log_count()
-        log_status = {
-            "normal": 0,
-            "error": 0
-        }
-        if log_errors:
-            for log in log_errors:
-                if log.get("doc_count") > 0 and log.get("key") in projects_list:
-                    log_status["error"] += 1
-                else:
-                    log_status["normal"] += 1
-
         data = {
-            "cupStatus": {
-                "used": cpu_used,
-                "Unused": 100-cpu_used
-            },
-            "memorystate": {
-                "used": memorystate.get("used"),
-                "Unused": memorystate.get("total") - memorystate.get("used")
-            },
-            "project_running_status": {
-                "waitting": 0,
-                "running": 0
-            },
-            "project_error_rate_status": log_status,
             "dataCount": self.get_all_data_count(),
             "data_size": self.get_data_size() + self.get_file_size(),
             "file_size": self.get_file_size()
@@ -80,7 +49,6 @@ class DataCentralSrv:
         for item in all:
             data = int(item[0]) if item[0] else 0
         return data
-
 
     def get_file_size(self):
         data = db.session.query(func.sum(DataStorage.file_size)).scalar()

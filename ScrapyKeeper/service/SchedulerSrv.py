@@ -29,11 +29,18 @@ class SchedulerSrv(object):
     def add_existed_job_to_ram_scheduler(self):
         schedulers = Scheduler.query.all()
         for scheduler in schedulers:
+            project = Project.query.filter_by(id=scheduler.project_id).first()
+            args = {
+                "project_name": project.project_name,
+                "project_id": int(project.id),
+                "scheduler_id": scheduler.id,
+                "run_type": "periodic"
+            }
             ram_scheduler.add_job(
                 self.start_up_project,
-                kwargs={"args": {"project_id": scheduler.project_id}},
+                kwargs=args,
                 trigger='cron',
-                id=scheduler.project_id,
+                id=str(scheduler.id),
                 month='{}'.format(scheduler.cron_month),
                 day='{}'.format(scheduler.cron_day_of_month),
                 hour='{}'.format(scheduler.cron_hour),
@@ -151,10 +158,10 @@ class SchedulerSrv(object):
                                       run_type="onetime"
                                       )
             else:
-                cron_month = self.format_corn(scheduler_form.get("schedular").get("cron_month"))
-                cron_day_of_month = self.format_corn(scheduler_form.get("schedular").get("cron_day_of_month"))
-                cron_hour = self.format_corn(scheduler_form.get("schedular").get("cron_hour"))
-                cron_minutes = self.format_corn(scheduler_form.get("schedular").get("cron_minutes"))
+                cron_month = self.format_corn(scheduler_form.get("scheduler").get("cron_month"))
+                cron_day_of_month = self.format_corn(scheduler_form.get("scheduler").get("cron_day_of_month"))
+                cron_hour = self.format_corn(scheduler_form.get("scheduler").get("cron_hour"))
+                cron_minutes = self.format_corn(scheduler_form.get("scheduler").get("cron_minutes"))
                 dic = {
                     'project_id': project.id,
                     'run_type': "periodic",
@@ -162,19 +169,21 @@ class SchedulerSrv(object):
                     'cron_day_of_month': cron_day_of_month,
                     'cron_hour': cron_hour,
                     'cron_minutes': cron_minutes,
-                    "desc": scheduler_form.get("schedular").get("description"),
+                    "desc": scheduler_form.get("scheduler").get("description"),
                     "config": args.get("config")
                 }
-
                 obj = Scheduler.save(dic=dic)
+                args = {
+                        "project_name": project.project_name,
+                        "project_id": int(project.id),
+                        "scheduler_id": obj.get("id"),
+                        "run_type": "periodic"
+                }
                 ram_scheduler.add_job(
                     self.start_up_project,
-                    kwargs={"args": {"project_name": project.project_name,
-                                     "id": project.id, "scheduler_id": obj.get("id"),
-                                     "run_type": "periodic"}
-                            },
+                    kwargs=args,
                     trigger='cron',
-                    id=obj.get("id"),
+                    id=str(obj.get("id")),
                     month='{}'.format(cron_month),
                     day='{}'.format(cron_day_of_month),
                     hour='{}'.format(cron_hour),
@@ -191,8 +200,8 @@ class SchedulerSrv(object):
     def cancel_scheduler(self, args: dict):
         try:
             # 先从scheduler任务调度器中删除该调度任务
-            ram_scheduler.remove_job(args.get("scheduler_id"))
-            Scheduler.delete(filters={"project_id": args.get("project_id")})
+            ram_scheduler.remove_job(str(args.get("scheduler_id")))
+            Scheduler.delete(filters={"id": args.get("scheduler_id")})
             return True
         except:
             return None

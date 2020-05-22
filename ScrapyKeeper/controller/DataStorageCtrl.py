@@ -15,7 +15,8 @@ class DataStorageCtrl(Resource):
         parser.add_argument('type', required=True, type=str)
         parser.add_argument('num', type=float)
         parser.add_argument('file_size',  type=float)
-        args = parser.parse_args(strict=True)
+        parser.add_argument('node_type', type=str)
+        args = parser.parse_args()
         args["ip"] = request.remote_addr
         dataStorageSrv = DataStorageSrv()
         scrapyd_url = "http://{}:6800".format(args.get("ip"))
@@ -29,12 +30,13 @@ class DataStorageCtrl(Resource):
                 scheduler_id=args.get("scheduler_id"),
                 scrapyd_url=scrapyd_url
             )
-            dataStorageSrv.add(
-                scheduler_id=args.get("scheduler_id"),
-                scrapyd_url=scrapyd_url,
-                num=args.get("num"),
-                file_size=args.get("file_size")
-            )
+            if not args.get("node_type"):
+                dataStorageSrv.add(
+                    scheduler_id=args.get("scheduler_id"),
+                    scrapyd_url=scrapyd_url,
+                    num=args.get("num"),
+                    file_size=args.get("file_size")
+                )
         elif args.get("type") == "statistics":
             dataStorageSrv.add(
                 scheduler_id=args.get("scheduler_id"),

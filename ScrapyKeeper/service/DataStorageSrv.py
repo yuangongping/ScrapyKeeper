@@ -41,15 +41,17 @@ class DataStorageSrv:
             scheduler_id=scheduler_id,
             scrapyd_url=scrapyd_url
         ).first()
-        job.start_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        db.session.commit()
+        if job:
+            job.start_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            db.session.commit()
 
     def update_end_time(self, scheduler_id=None, scrapyd_url=None):
         job = JobExecution.query.filter_by(
             scheduler_id=scheduler_id,
             scrapyd_url=scrapyd_url
         ).first()
-        job.end_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        db.session.commit()
+        if job:
+            job.end_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            db.session.commit()
 
 
