@@ -46,7 +46,9 @@ class SchedulerSrv(object):
 
     def start_up_project(self, project_name: str, project_id: int, scheduler_id=None, run_type=None):
         # 通过工程找到对应的爬虫实例
+        print('Start_up_project')
         spiders = Spider.query.filter_by(**{"project_id": project_id}).all()
+        [print(spider.name) for spider in spiders]
         scheduler = Scheduler.query.filter_by(id=scheduler_id).first()
         scrapyd_job_id = []
         for spider in spiders:
@@ -59,6 +61,7 @@ class SchedulerSrv(object):
                     scheduler_id=scheduler_id,
                     settings=settings
                 )
+                print('Master spider %s running in job id %s' % (spider.name, master_job_id))
                 if not master_job_id:
                     raise ConnectionError('run master spider %s start job failed !' % spider.name)
 
@@ -86,6 +89,7 @@ class SchedulerSrv(object):
                             scheduler_id=scheduler_id,
                             settings=settings
                         )
+                        print('Slave spider %s running in job id %s' % (spider.name, slave_job_id))
                         if not slave_job_id:
                             raise ConnectionError('slave spider %s start job failed !' % spider.name)
                         scrapyd_job_id.append(slave_job_id)
@@ -116,7 +120,7 @@ class SchedulerSrv(object):
                     )
                     # 由于取消爬虫不会关闭爬虫， 故需要手动更新数据库
                     job.end_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                    logging.info("主爬虫： {} 任务已取消！".format(master_job_id))
+                    print("主爬虫： {} 任务已取消！".format(master_job_id))
                 else:
                     porject = Project.query.filter_by(id=job.project_id).first()
                     for agent in self.slave_agents:
@@ -127,7 +131,7 @@ class SchedulerSrv(object):
                             )
                             # 由于取消爬虫不会关闭爬虫， 故需要手动更新数据库
                             job.end_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                            logging.info("从爬虫： {} 任务已取消！".format(slave_job_id))
+                            print("从爬虫： {} 任务已取消！".format(slave_job_id))
                 db.session.commit()
             return True
         except:
