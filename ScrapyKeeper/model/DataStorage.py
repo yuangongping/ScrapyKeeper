@@ -8,6 +8,7 @@ class DataStorage(Base):
     project_name = db.Column(db.String(100))
     project_name_zh = db.Column(db.String(100))
     schudeler_id = db.Column(db.String(100))
+    round_id = db.Column(db.String(100))
     node_ip = db.Column(db.String(100))
     # 存储的批量大小
     num = db.Column(db.Integer, default=50)

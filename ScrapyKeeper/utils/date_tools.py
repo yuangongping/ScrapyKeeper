@@ -14,6 +14,8 @@ def get_near_ndays(days=7):
 
 
 def get_running_time(start_time, end_time)-> int:
+    print('----------  start_time  ', start_time)
+    print('------------  end_time  ', end_time)
     if start_time == "None" and end_time == "None":
         return 0
     elif start_time != "None" and end_time == "None":

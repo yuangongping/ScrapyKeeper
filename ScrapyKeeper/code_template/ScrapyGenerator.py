@@ -8,7 +8,7 @@ class ScrapyGenerator(object):
     @classmethod
     def create_scrapy_project(cls, template: str, **kwargs):
         tmpl_gen_module = importlib.import_module('ScrapyKeeper.code_template.sources.%s.generator' % template)
-        tmpl_gen_module.generate(kwargs)
+        tmpl_gen_module.generate(**kwargs)
 
     @classmethod
     def exec_egg_cli(cls, root_path: str, template: str, project_name: str, m_or_s: str) -> str:

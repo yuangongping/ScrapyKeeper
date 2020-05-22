@@ -1,7 +1,7 @@
 import demjson
 
 
-def get_settings(config_str, project_name, scheduler_id, root_project_name):
+def get_settings(config_str, project_name, scheduler_id, round_id, root_project_name):
     download_params_form = demjson.decode(demjson.decode(config_str).get("download_params_form"))
     crawl_range_form = demjson.decode(demjson.decode(config_str).get("crawl_range_form"))
     crawl_stratege_form = demjson.decode(demjson.decode(config_str).get("crawl_stratege_form"))
@@ -33,6 +33,7 @@ def get_settings(config_str, project_name, scheduler_id, root_project_name):
         "PROJECT_NAME": project_name,
         "ROOT_PROJECT_NAME": root_project_name,
         "SCHEDULER_ID": scheduler_id,
+        "ROUND_ID": round_id,
         "DATA_CALLBACK_URL": data_return_form.get("url"),
         "DATA_CALLBACK_SIZE": data_return_form.get("batch_size"),
         "FILE_UPLOAD_URL": storage_management_form.get("storage_type_3").get(

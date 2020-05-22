@@ -180,7 +180,7 @@ class ProjectSrv(object):
         data = []
         for project in projects:
             proj = project.to_dict(base_time=True)
-            proj["error"] = 1
+            proj["error"] = 0
             data.append(proj)
         return {"total": pagination.total, "data": data}
 

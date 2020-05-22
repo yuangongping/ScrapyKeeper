@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from ScrapyKeeper.model.Email import Email
 from ScrapyKeeper.model.DataStorage import DataStorage, db
 from sqlalchemy import func
 import logging
@@ -7,9 +8,11 @@ from ScrapyKeeper.model.Project import Project
 from ScrapyKeeper.model.JobExecution import JobExecution
 import datetime
 
+from ScrapyKeeper.model.SendEmail import SendEmail
+from ScrapyKeeper.service.SendEmailSrv import SendEmailSrv
 
 class DataStorageSrv:
-    def add(self, scheduler_id=None, scrapyd_url=None, num=200, file_size=None):
+    def add(self, scheduler_id=None, round_id=None, scrapyd_url=None, num=200, file_size=None):
         scheduler = Scheduler.query.filter_by(id=scheduler_id).first()
         project = Project.query.filter_by(id=scheduler.project_id).first()
         dic = {
@@ -17,6 +20,7 @@ class DataStorageSrv:
             "project_name": project.project_name,
             "project_name_zh": project.project_name_zh,
             "schudeler_id": scheduler_id,
+            "round_id": round_id,
             "node_ip": scrapyd_url,
             "num": num,
             'file_size': file_size
@@ -53,5 +57,31 @@ class DataStorageSrv:
         if job:
             job.end_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             db.session.commit()
+
+            email_list = Email.all(_to_dict=False)
+            if len(email_list) > 0 and job.node_type == 'slave':
+                emails = [email.email for email in email_list]
+                project = Project.find_by_id(job.project_id, _to_dict=False)
+                sent = SendEmail.find_by_round(job.round_id)
+                if not sent:
+                    data_storage = DataStorage.query.filter(DataStorage.schudeler_id == scheduler_id).all()
+                    num = 0
+                    file_size = 0
+
+                    for data in data_storage:
+                        num += data.num
+                        file_size += data.file_size
+                    SendEmailSrv.send_email(round_id=job.round_id,
+                                            project_name=project.project_name_zh,
+                                            num=num,
+                                            file_size=file_size,
+                                            emails=emails)
+
+
+
+
+
+
+
 
 
