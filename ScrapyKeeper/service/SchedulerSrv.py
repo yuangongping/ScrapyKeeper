@@ -225,10 +225,12 @@ class SchedulerSrv(object):
         try:
             # 先从scheduler任务调度器中删除该调度任务
             ram_scheduler.remove_job(str(args.get("scheduler_id")))
+            print('--------   ram_scheduler_list  ', ram_scheduler.get_jobs())
             Scheduler.delete(filters={"id": args.get("scheduler_id")})
             return True
-        except:
-            return None
+        except Exception as err:
+            print(err)
+            abort(500, message=str(err))
         
     def getbyid(self, id=None):
         return Scheduler.query.filter_by(id=id).first().to_dict()

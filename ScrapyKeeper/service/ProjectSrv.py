@@ -177,28 +177,28 @@ class ProjectSrv(object):
         self.update_spider_status(projects)
 
         """通过ELK日志分析系统， 获取工程的日志错误信息"""
-        data = []
-        for project in projects:
-            proj = project.to_dict(base_time=True)
-            proj["error"] = 0
-            data.append(proj)
-        return {"total": pagination.total, "data": data}
-
-        # log_error_list = LogManageSrv.log_count()
         # data = []
         # for project in projects:
-        #     proj = project.to_dict()
-        #     scheduler = Scheduler.query.filter_by(project_id=project.id).first()
+        #     proj = project.to_dict(base_time=True)
         #     proj["error"] = 0
-        #     proj["time"] = scheduler.desc if scheduler else "待添加调度"
-        #     if log_error_list:
-        #         for log_err in log_error_list:
-        #             if proj["project_name"] in log_err["key"]:
-        #                 proj["error"] = log_err["doc_count"]
-        #                 break
         #     data.append(proj)
-        #
         # return {"total": pagination.total, "data": data}
+
+        log_error_list = ElkLogSrv.log_count()
+        data = []
+        for project in projects:
+            proj = project.to_dict()
+            scheduler = Scheduler.query.filter_by(project_id=project.id).first()
+            proj["error"] = 0
+            proj["time"] = scheduler.desc if scheduler else "待添加调度"
+            if log_error_list:
+                for log_err in log_error_list:
+                    if proj["project_name"] in log_err["key"]:
+                        proj["error"] = log_err["doc_count"]
+                        break
+            data.append(proj)
+
+        return {"total": pagination.total, "data": data}
 
     def get_project_by_name(self, project_name):
         project = Project.query.filter_by(project_name=project_name).first()
@@ -208,7 +208,7 @@ class ProjectSrv(object):
             node_type="slave"
             ).group_by(
                 JobExecution.scheduler_id
-            ).all()
+            ).order_by(JobExecution.date_modified).all()
         project_dict["task_num"] = len(jobs)
         job_list = []
         for job in jobs:
@@ -225,7 +225,6 @@ class ProjectSrv(object):
         "获取周期任务列表"
         schedulers = Scheduler.query.filter_by(
             project_id=project_dict.get("id"),
-            run_type="periodic"
         ).all()
         project_dict["scheduler_list"] = [sch.to_dict() for sch in schedulers]
         return project_dict
