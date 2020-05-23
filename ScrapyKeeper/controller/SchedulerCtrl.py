@@ -6,17 +6,8 @@ from ScrapyKeeper.utils.format_result import success_res, error_res
 
 class SchedulerCtrl(Resource):
     def get(self):
-        """
-        取消调度
-        :return:
-        """
-        parser = reqparse.RequestParser()
-        parser.add_argument('project_id', required=True, type=int)
-        parser.add_argument('scheduler_id', required=True, type=int)
-        args = parser.parse_args(strict=True)
-        schedulerSrv = SchedulerSrv()
-        data = schedulerSrv.cancel_scheduler(args=args)
-        return success_res(data)
+        pass
+
 
     def post(self):
         """
@@ -44,4 +35,14 @@ class SchedulerCtrl(Resource):
         return success_res(data)
 
     def delete(self):
-       pass
+        """
+        删除调度任务
+        :return:
+        """
+        parser = reqparse.RequestParser()
+        parser.add_argument('project_id', required=True, type=int)
+        parser.add_argument('scheduler_id', required=True, type=int)
+        args = parser.parse_args(strict=True)
+        schedulerSrv = SchedulerSrv()
+        data = schedulerSrv.cancel_scheduler(args=args)
+        return success_res(data)

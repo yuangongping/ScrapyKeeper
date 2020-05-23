@@ -6,6 +6,7 @@ import datetime
 class JobExecution(Base):
     __tablename__ = 'job_execution'
     scheduler_id = db.Column(db.String(255))
+    round_id = db.Column(db.String(255))
     project_id = db.Column(db.INTEGER, nullable=False, index=True)
     scrapyd_url = db.Column(db.String(255))
     node_type = db.Column(db.String(100))

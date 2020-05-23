@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import uuid
+
 from flask_restful import abort
 from ScrapyKeeper.agent.ScrapyAgent import ScrapyAgent
 from ScrapyKeeper.model.ServerMachine import ServerMachine
@@ -7,6 +9,8 @@ from ScrapyKeeper.model.Project import Project
 from ScrapyKeeper.model.Scheduler import Scheduler
 from ScrapyKeeper import ram_scheduler
 import demjson
+
+from ScrapyKeeper.service.DataStorageSrv import DataStorageSrv
 from ScrapyKeeper.utils.process_settings import get_settings
 from ScrapyKeeper.model.JobExecution import JobExecution
 import logging
@@ -29,11 +33,18 @@ class SchedulerSrv(object):
     def add_existed_job_to_ram_scheduler(self):
         schedulers = Scheduler.query.all()
         for scheduler in schedulers:
+            project = Project.query.filter_by(id=scheduler.project_id).first()
+            args = {
+                "project_name": project.project_name,
+                "project_id": int(project.id),
+                "scheduler_id": scheduler.id,
+                "run_type": "periodic"
+            }
             ram_scheduler.add_job(
                 self.start_up_project,
-                kwargs={"args": {"project_id": scheduler.project_id}},
+                kwargs=args,
                 trigger='cron',
-                id=scheduler.project_id,
+                id=str(scheduler.id),
                 month='{}'.format(scheduler.cron_month),
                 day='{}'.format(scheduler.cron_day_of_month),
                 hour='{}'.format(scheduler.cron_hour),
@@ -51,14 +62,19 @@ class SchedulerSrv(object):
         [print(spider.name) for spider in spiders]
         scheduler = Scheduler.query.filter_by(id=scheduler_id).first()
         scrapyd_job_id = []
+
+        round_id = uuid.uuid1().hex  # 周期调度的轮次id
         for spider in spiders:
             if spider.type == "master":
                 _project_name = project_name + "_master"
-                settings = get_settings(scheduler.config, _project_name, scheduler_id, project_name)
+                settings = get_settings(scheduler.config,
+                                        _project_name,
+                                        scheduler_id,
+                                        round_id,
+                                        project_name)
                 master_job_id = self.master_agent.start_spider(
                     spider.project_name,
                     spider.name,
-                    scheduler_id=scheduler_id,
                     settings=settings
                 )
                 print('Master spider %s running in job id %s' % (spider.name, master_job_id))
@@ -73,6 +89,7 @@ class SchedulerSrv(object):
                     "project_id": project_id,
                     "scrapyd_job_id": master_job_id,
                     "scheduler_id": scheduler_id,
+                    "round_id": round_id,
                     "scrapyd_url": self.master_agent.server_url,
                     "node_type": "master",
                     "run_type": run_type
@@ -81,12 +98,15 @@ class SchedulerSrv(object):
             else:
                 for agent in self.slave_agents:
                     _project_name = project_name + "_slave"
-                    settings = get_settings(scheduler.config, _project_name, scheduler_id, project_name)
+                    settings = get_settings(scheduler.config,
+                                            _project_name,
+                                            scheduler_id,
+                                            round_id,
+                                            project_name)
                     if agent.server_url == spider.address:
                         slave_job_id = agent.start_spider(
                             spider.project_name,
                             spider.name,
-                            scheduler_id=scheduler_id,
                             settings=settings
                         )
                         print('Slave spider %s running in job id %s' % (spider.name, slave_job_id))
@@ -99,6 +119,7 @@ class SchedulerSrv(object):
                             "project_id": project_id,
                             "scrapyd_job_id": slave_job_id,
                             "scheduler_id": scheduler_id,
+                            "round_id": round_id,
                             "scrapyd_url": agent.server_url,
                             "node_type": "slave",
                             "run_type": run_type
@@ -112,6 +133,8 @@ class SchedulerSrv(object):
             filters = {"scheduler_id": args.get("scheduler_id")}
             jobs = JobExecution.query.filter_by(**filters).all()
             porject = Project.query.filter_by(id=jobs[0].project_id).first()
+
+            data_storage = DataStorageSrv()
             for job in jobs:
                 if job.node_type == "master":
                     master_job_id = self.master_agent.cancel_spider(
@@ -119,7 +142,7 @@ class SchedulerSrv(object):
                         job.scrapyd_job_id
                     )
                     # 由于取消爬虫不会关闭爬虫， 故需要手动更新数据库
-                    job.end_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    # job.end_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                     print("主爬虫： {} 任务已取消！".format(master_job_id))
                 else:
                     porject = Project.query.filter_by(id=job.project_id).first()
@@ -130,12 +153,14 @@ class SchedulerSrv(object):
                                 job.scrapyd_job_id
                             )
                             # 由于取消爬虫不会关闭爬虫， 故需要手动更新数据库
-                            job.end_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                            # job.end_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                             print("从爬虫： {} 任务已取消！".format(slave_job_id))
-                db.session.commit()
+
+                data_storage.update_end_time(scheduler_id=job.scheduler_id, scrapyd_url=job.scrapyd_url)
+                # db.session.commit()
             return True
-        except:
-            return None
+        except Exception as err:
+            abort(500, message=str(err))
 
     def add_scheduler(self, args: dict):
         try:
@@ -157,10 +182,10 @@ class SchedulerSrv(object):
                                       run_type="onetime"
                                       )
             else:
-                cron_month = self.format_corn(scheduler_form.get("schedular").get("cron_month"))
-                cron_day_of_month = self.format_corn(scheduler_form.get("schedular").get("cron_day_of_month"))
-                cron_hour = self.format_corn(scheduler_form.get("schedular").get("cron_hour"))
-                cron_minutes = self.format_corn(scheduler_form.get("schedular").get("cron_minutes"))
+                cron_month = self.format_corn(scheduler_form.get("scheduler").get("cron_month"))
+                cron_day_of_month = self.format_corn(scheduler_form.get("scheduler").get("cron_day_of_month"))
+                cron_hour = self.format_corn(scheduler_form.get("scheduler").get("cron_hour"))
+                cron_minutes = self.format_corn(scheduler_form.get("scheduler").get("cron_minutes"))
                 dic = {
                     'project_id': project.id,
                     'run_type': "periodic",
@@ -168,19 +193,21 @@ class SchedulerSrv(object):
                     'cron_day_of_month': cron_day_of_month,
                     'cron_hour': cron_hour,
                     'cron_minutes': cron_minutes,
-                    "desc": scheduler_form.get("schedular").get("description"),
+                    "desc": scheduler_form.get("scheduler").get("description"),
                     "config": args.get("config")
                 }
-
                 obj = Scheduler.save(dic=dic)
+                args = {
+                        "project_name": project.project_name,
+                        "project_id": int(project.id),
+                        "scheduler_id": obj.get("id"),
+                        "run_type": "periodic"
+                }
                 ram_scheduler.add_job(
                     self.start_up_project,
-                    kwargs={"args": {"project_name": project.project_name,
-                                     "id": project.id, "scheduler_id": obj.get("id"),
-                                     "run_type": "periodic"}
-                            },
+                    kwargs=args,
                     trigger='cron',
-                    id=obj.get("id"),
+                    id=str(obj.get("id")),
                     month='{}'.format(cron_month),
                     day='{}'.format(cron_day_of_month),
                     hour='{}'.format(cron_hour),
@@ -197,8 +224,8 @@ class SchedulerSrv(object):
     def cancel_scheduler(self, args: dict):
         try:
             # 先从scheduler任务调度器中删除该调度任务
-            ram_scheduler.remove_job(args.get("scheduler_id"))
-            Scheduler.delete(filters={"project_id": args.get("project_id")})
+            ram_scheduler.remove_job(str(args.get("scheduler_id")))
+            Scheduler.delete(filters={"id": args.get("scheduler_id")})
             return True
         except:
             return None

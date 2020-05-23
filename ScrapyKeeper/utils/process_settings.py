@@ -1,7 +1,7 @@
 import demjson
 
 
-def get_settings(config_str, project_name, scheduler_id, root_project_name):
+def get_settings(config_str, project_name, scheduler_id, round_id, root_project_name):
     download_params_form = demjson.decode(demjson.decode(config_str).get("download_params_form"))
     crawl_range_form = demjson.decode(demjson.decode(config_str).get("crawl_range_form"))
     crawl_stratege_form = demjson.decode(demjson.decode(config_str).get("crawl_stratege_form"))
@@ -12,7 +12,7 @@ def get_settings(config_str, project_name, scheduler_id, root_project_name):
     settings = {
         "MYEXT_ENABLED": True,
         "IDLE_NUMBER": 10,
-        "LOG_LEVEL": "INFO",
+        "LOG_LEVEL":  crawl_stratege_form.get("log_level", "INFO"),
         "RETRY_ENABLED": True,
         "RETRY_TIMES": download_params_form.get("reapt_num", 1),
         "CONCURRENT_REQUESTS": download_params_form.get("request_num", 8),
@@ -33,6 +33,7 @@ def get_settings(config_str, project_name, scheduler_id, root_project_name):
         "PROJECT_NAME": project_name,
         "ROOT_PROJECT_NAME": root_project_name,
         "SCHEDULER_ID": scheduler_id,
+        "ROUND_ID": round_id,
         "DATA_CALLBACK_URL": data_return_form.get("url"),
         "DATA_CALLBACK_SIZE": data_return_form.get("batch_size"),
         "FILE_UPLOAD_URL": storage_management_form.get("storage_type_3").get(
@@ -41,7 +42,8 @@ def get_settings(config_str, project_name, scheduler_id, root_project_name):
         "MIDDLEWARES_PROXY_OPEN": True if download_params_form.get("ip_proxy") == 2 else False,
         "PROXY_CENTER_URL": download_params_form.get("PROXY_CENTER_URL"),
         "SEED_LIST": demjson.encode(SEED_LIST),
-        "SCHEDULER_DUPEFILTER_KEY": '{}:dupefilter'.format(root_project_name)
+        "SCHEDULER_DUPEFILTER_KEY": '{}:dupefilter'.format(root_project_name),
+        "SCHEDULER_PERSIST": "False"
     }
 
     # 如果深度优先
