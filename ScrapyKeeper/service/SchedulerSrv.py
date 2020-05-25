@@ -15,6 +15,7 @@ from ScrapyKeeper.utils.process_settings import get_settings
 from ScrapyKeeper.model.JobExecution import JobExecution
 import logging
 import datetime
+import time
 
 
 class SchedulerSrv(object):
@@ -33,6 +34,9 @@ class SchedulerSrv(object):
     def add_existed_job_to_ram_scheduler(self):
         schedulers = Scheduler.query.all()
         for scheduler in schedulers:
+            # 对单次运行的任务实例不做处理
+            if scheduler.run_type != "periodic":
+                continue
             project = Project.query.filter_by(id=scheduler.project_id).first()
             args = {
                 "project_name": project.project_name,
@@ -40,7 +44,7 @@ class SchedulerSrv(object):
                 "scheduler_id": scheduler.id,
                 "run_type": "periodic"
             }
-            ram_scheduler.add_job(
+            ram_job = ram_scheduler.add_job(
                 self.start_up_project,
                 kwargs=args,
                 trigger='cron',
@@ -54,6 +58,8 @@ class SchedulerSrv(object):
                 misfire_grace_time=60 * 60,
                 coalesce=True
             )
+
+            print("当前已存在周期任务的任务：", ram_job.id)
 
     def start_up_project(self, project_name: str, project_id: int, scheduler_id=None, run_type=None):
         # 通过工程找到对应的爬虫实例
@@ -203,7 +209,7 @@ class SchedulerSrv(object):
                         "scheduler_id": obj.get("id"),
                         "run_type": "periodic"
                 }
-                ram_scheduler.add_job(
+                job = ram_scheduler.add_job(
                     self.start_up_project,
                     kwargs=args,
                     trigger='cron',
@@ -224,11 +230,17 @@ class SchedulerSrv(object):
     def cancel_scheduler(self, args: dict):
         try:
             # 先从scheduler任务调度器中删除该调度任务
-            ram_scheduler.remove_job(str(args.get("scheduler_id")))
-            Scheduler.delete(filters={"id": args.get("scheduler_id")})
+            try:
+                all_jobs = ram_scheduler.get_jobs()
+                for ram_job in all_jobs:
+                    if ram_job.id == str(args.get("scheduler_id")):
+                        ram_scheduler.remove_job(ram_job.id)
+            finally:
+                Scheduler.delete(filters={"id": args.get("scheduler_id")})
             return True
-        except:
-            return None
+        except Exception as err:
+            print(err)
+            abort(500, message=str(err))
         
     def getbyid(self, id=None):
         return Scheduler.query.filter_by(id=id).first().to_dict()

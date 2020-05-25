@@ -33,8 +33,7 @@ class ElkLogCtrl(Resource):
         parser = reqparse.RequestParser()
         parser.add_argument('project_name', required=True, type=str)
         args = parser.parse_args(strict=True)
-
-        ElkLogSrv.log_delete(
+        data = ElkLogSrv.log_delete(
             project_name=args.get("project_name")
         )
-        return success_res()
+        return success_res(data)
