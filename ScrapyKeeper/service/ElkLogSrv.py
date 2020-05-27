@@ -116,8 +116,6 @@ class ElkLogSrv(object):
         except:
             return None
 
-
-
     @classmethod
     def log_delete(cls, project_name: str):
         """
@@ -161,6 +159,7 @@ class ElkLogSrv(object):
 
             # 同时从数据库中删除数据
             connection.delete_by_query(index='duocaiyun-*', body=query_json)
+            return True
 
         except Exception as e:
             abort(400, '%s logs delete fail: %s' % (project_name, e))

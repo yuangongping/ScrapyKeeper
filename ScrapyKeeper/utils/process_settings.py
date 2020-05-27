@@ -44,7 +44,12 @@ def get_settings(config_str, project_name, scheduler_id, round_id, root_project_
         "SEED_LIST": demjson.encode(seed_form),
         "ROOT_PROJECT_NAME_ZH": project_name_zh,
         "SCHEDULER_DUPEFILTER_KEY": '{}:dupefilter'.format(root_project_name),
-        "SCHEDULER_PERSIST": "False"
+        "SCHEDULER_PERSIST": "False",
+        "ACCOUNT_LIST": demjson.encode([
+            {"username": "taozi926494@sina.com", "password": "taozi926494!@#$%"},
+            {"username": "15288147845", "password": "Clc372493"},
+            {"username": "1030617785@qq.com", "password": "YGPCHQ19920612"}
+        ])
     }
 
     # 如果深度优先

@@ -15,6 +15,7 @@ from ScrapyKeeper.utils.process_settings import get_settings
 from ScrapyKeeper.model.JobExecution import JobExecution
 import logging
 import datetime
+import time
 
 
 class SchedulerSrv(object):
@@ -33,6 +34,9 @@ class SchedulerSrv(object):
     def add_existed_job_to_ram_scheduler(self):
         schedulers = Scheduler.query.all()
         for scheduler in schedulers:
+            # 对单次运行的任务实例不做处理
+            if scheduler.run_type != "periodic":
+                continue
             project = Project.query.filter_by(id=scheduler.project_id).first()
             args = {
                 "project_name": project.project_name,
@@ -41,7 +45,7 @@ class SchedulerSrv(object):
                 "run_type": "periodic",
                 "project_name_zh": project.project_name_zh
             }
-            ram_scheduler.add_job(
+            ram_job = ram_scheduler.add_job(
                 self.start_up_project,
                 kwargs=args,
                 trigger='cron',
@@ -205,7 +209,7 @@ class SchedulerSrv(object):
                         "run_type": "periodic",
                         "project_name_zh": project.project_name_zh
                 }
-                ram_scheduler.add_job(
+                job = ram_scheduler.add_job(
                     self.start_up_project,
                     kwargs=args,
                     trigger='cron',
@@ -226,9 +230,13 @@ class SchedulerSrv(object):
     def cancel_scheduler(self, args: dict):
         try:
             # 先从scheduler任务调度器中删除该调度任务
-            ram_scheduler.remove_job(str(args.get("scheduler_id")))
-            print('--------   ram_scheduler_list  ', ram_scheduler.get_jobs())
-            Scheduler.delete(filters={"id": args.get("scheduler_id")})
+            try:
+                all_jobs = ram_scheduler.get_jobs()
+                for ram_job in all_jobs:
+                    if ram_job.id == str(args.get("scheduler_id")):
+                        ram_scheduler.remove_job(ram_job.id)
+            finally:
+                Scheduler.delete(filters={"id": args.get("scheduler_id")})
             return True
         except Exception as err:
             print(err)
