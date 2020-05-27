@@ -1,14 +1,14 @@
 import demjson
 
 
-def get_settings(config_str, project_name, scheduler_id, round_id, root_project_name):
+def get_settings(config_str, project_name, scheduler_id, round_id, root_project_name, project_name_zh):
     download_params_form = demjson.decode(demjson.decode(config_str).get("download_params_form"))
     crawl_range_form = demjson.decode(demjson.decode(config_str).get("crawl_range_form"))
     crawl_stratege_form = demjson.decode(demjson.decode(config_str).get("crawl_stratege_form"))
     storage_management_form = demjson.decode(demjson.decode(config_str).get("storage_management_form"))
     data_return_form = demjson.decode(demjson.decode(config_str).get("data_return_form"))
     seed_form = demjson.decode(demjson.decode(config_str).get("seed_form"))
-    SEED_LIST = [item["value"] for item in seed_form.get("domains")]
+    # SEED_LIST = [item["value"] for item in seed_form.get("domains")]
     settings = {
         "MYEXT_ENABLED": True,
         "IDLE_NUMBER": 10,
@@ -41,7 +41,8 @@ def get_settings(config_str, project_name, scheduler_id, round_id, root_project_
 
         "MIDDLEWARES_PROXY_OPEN": True if download_params_form.get("ip_proxy") == 2 else False,
         "PROXY_CENTER_URL": download_params_form.get("PROXY_CENTER_URL"),
-        "SEED_LIST": demjson.encode(SEED_LIST),
+        "SEED_LIST": demjson.encode(seed_form),
+        "ROOT_PROJECT_NAME_ZH": project_name_zh,
         "SCHEDULER_DUPEFILTER_KEY": '{}:dupefilter'.format(root_project_name),
         "SCHEDULER_PERSIST": "False"
     }

@@ -7,7 +7,8 @@ from ScrapyKeeper.utils.ThreadWithResult import ThreadWithResult
 class ScrapyGenerator(object):
     @classmethod
     def create_scrapy_project(cls, template: str, **kwargs):
-        tmpl_gen_module = importlib.import_module('ScrapyKeeper.code_template.sources.%s.generator' % template)
+        module_import_words = 'ScrapyKeeper.code_template.sources.%s.generator' % template
+        tmpl_gen_module = importlib.import_module(module_import_words)
         tmpl_gen_module.generate(**kwargs)
 
     @classmethod
