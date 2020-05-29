@@ -11,6 +11,7 @@ import datetime
 from ScrapyKeeper.model.SendEmail import SendEmail
 from ScrapyKeeper.service.SendEmailSrv import SendEmailSrv
 
+
 class DataStorageSrv:
     def add(self, scheduler_id=None, round_id=None, scrapyd_url=None, num=200, file_size=None):
         scheduler = Scheduler.query.filter_by(id=scheduler_id).first()
@@ -49,7 +50,7 @@ class DataStorageSrv:
             job.start_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             db.session.commit()
 
-    def update_end_time(self, scheduler_id=None, scrapyd_url=None):
+    def update_end_time(self, scheduler_id=None, scrapyd_url=None, cancel_manually=False):
         job = JobExecution.query.filter_by(
             scheduler_id=scheduler_id,
             scrapyd_url=scrapyd_url
@@ -57,7 +58,9 @@ class DataStorageSrv:
         if job:
             job.end_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             db.session.commit()
-
+            # 如果是手动取消运行, 则不发送邮件，发送邮件有关闭爬虫信号函数的回调  发送
+            if cancel_manually:
+                return
             email_list = Email.all(_to_dict=False)
             if len(email_list) > 0 and job.node_type == 'slave':
                 emails = [email.email for email in email_list]
@@ -67,7 +70,6 @@ class DataStorageSrv:
                     data_storage = DataStorage.query.filter(DataStorage.schudeler_id == scheduler_id).all()
                     num = 0
                     file_size = 0
-
                     for data in data_storage:
                         num += data.num
                         file_size += data.file_size
@@ -76,12 +78,3 @@ class DataStorageSrv:
                                             num=num,
                                             file_size=file_size,
                                             emails=emails)
-
-
-
-
-
-
-
-
-
