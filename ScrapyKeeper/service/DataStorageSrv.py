@@ -67,7 +67,6 @@ class DataStorageSrv:
                     data_storage = DataStorage.query.filter(DataStorage.schudeler_id == scheduler_id).all()
                     num = 0
                     file_size = 0
-
                     for data in data_storage:
                         num += data.num
                         file_size += data.file_size
@@ -76,12 +75,3 @@ class DataStorageSrv:
                                             num=num,
                                             file_size=file_size,
                                             emails=emails)
-
-
-
-
-
-
-
-
-

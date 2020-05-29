@@ -60,7 +60,7 @@ def favicon():
 # 注册路由
 from .router import regist_router
 regist_router()
-from ScrapyKeeper.service.SchedulerSrv import SchedulerSrv
-schedulerSrv = SchedulerSrv()
-schedulerSrv.add_existed_job_to_ram_scheduler()
+# from ScrapyKeeper.service.SchedulerSrv import SchedulerSrv
+# schedulerSrv = SchedulerSrv()
+# schedulerSrv.add_existed_job_to_ram_scheduler()
 ram_scheduler.start()

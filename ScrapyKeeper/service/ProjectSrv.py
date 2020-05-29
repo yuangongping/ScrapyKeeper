@@ -231,8 +231,9 @@ class ProjectSrv(object):
 
     def del_project(self, **kwargs):
         # 先取消该工程下所有运行的项目
-        jobs = JobExecution.query.filter_by(project_id=kwargs.get("project_id")).all()
-        schedulerSrv =  SchedulerSrv()
+        jobs = JobExecution.query.filter_by(project_id=kwargs.get("project_id"), end_time=None)\
+            .group_by(JobExecution.scheduler_id).all()
+        schedulerSrv = SchedulerSrv()
         for job in jobs:
             schedulerSrv.cancel_running_project({"scheduler_id": job.scheduler_id})
         # 删除srcapyd主服务器的指定工程下的所有版本

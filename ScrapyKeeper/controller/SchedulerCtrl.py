@@ -14,6 +14,7 @@ class SchedulerCtrl(Resource):
         周期调度
         :return:
         """
+        # TODO 传project_id
         parser = reqparse.RequestParser()
         parser.add_argument('project_name', required=True, type=str)
         parser.add_argument('config', required=True, type=str)
