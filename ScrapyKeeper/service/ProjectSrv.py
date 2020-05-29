@@ -187,7 +187,7 @@ class ProjectSrv(object):
         log_error_list = ElkLogSrv.log_count()
         data = []
         for project in projects:
-            proj = project.to_dict()
+            proj = project.to_dict(base_time=True)
             scheduler = Scheduler.query.filter_by(project_id=project.id).first()
             proj["error"] = 0
             proj["time"] = scheduler.desc if scheduler else "待添加调度"

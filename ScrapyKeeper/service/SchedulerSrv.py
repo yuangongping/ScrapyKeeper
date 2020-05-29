@@ -134,12 +134,12 @@ class SchedulerSrv(object):
 
     def cancel_running_project(self,  args: dict):
         try:
-            # 通过工程找到对应的爬虫实例
-            filters = {"scheduler_id": args.get("scheduler_id")}
-            jobs = JobExecution.query.filter_by(**filters).all()
+            # 通过 调度id 查询所有的任务
+            jobs = JobExecution.query.filter_by(scheduler_id=args.get("scheduler_id")).all()
+            # 获取该调度所属的工程信息
             porject = Project.query.filter_by(id=jobs[0].project_id).first()
-
             data_storage = DataStorageSrv()
+            # 取消主从节点上的任务
             for job in jobs:
                 if job.node_type == "master":
                     master_job_id = self.master_agent.cancel_spider(
@@ -159,9 +159,12 @@ class SchedulerSrv(object):
                             # 由于取消爬虫不会关闭爬虫， 故需要手动更新数据库
                             # job.end_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                             print("从爬虫： {} 任务已取消！".format(job.scrapyd_job_id))
-
-                data_storage.update_end_time(scheduler_id=job.scheduler_id, scrapyd_url=job.scrapyd_url)
-                # db.session.commit()
+                # 更新每个任务的结束时间
+                data_storage.update_end_time(
+                    scheduler_id=job.scheduler_id,
+                    scrapyd_url=job.scrapyd_url,
+                    cancel_manually=True
+                )
             return True
         except Exception as err:
             abort(500, message=str(err))
