@@ -27,17 +27,19 @@ class DataStorageCtrl(Resource):
                 scrapyd_url=scrapyd_url
             )
         elif args.get("type") == "close_spider":
-            dataStorageSrv.update_end_time(
-                scheduler_id=args.get("scheduler_id"),
-                scrapyd_url=scrapyd_url
-            )
             if not args.get("node_type"):
                 dataStorageSrv.add(
                     scheduler_id=args.get("scheduler_id"),
                     scrapyd_url=scrapyd_url,
+                    round_id=args.get('round_id'),
                     num=args.get("num"),
                     file_size=args.get("file_size")
                 )
+            dataStorageSrv.update_end_time(
+                scheduler_id=args.get("scheduler_id"),
+                scrapyd_url=scrapyd_url
+            )
+            # 如果是从爬虫的节点关闭爬虫
         elif args.get("type") == "statistics":
             dataStorageSrv.add(
                 scheduler_id=args.get("scheduler_id"),

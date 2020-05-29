@@ -15,5 +15,4 @@ EMAIL_SENDER = '952838607@qq.com'
 EMAIL_AUTH_CODE = 'vufpldztjxhhbecb'
 
 ES_URL = 'http://10.5.9.118:9200/'  # 存储日志的数据库地址
-DATASTORAGENAME="duocaiyunspider"
-# DATASTORAGENAME="duocaiyunspider_dataresource"
+DATASTORAGENAME="duocaiyunspider_dataresource"
