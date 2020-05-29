@@ -165,6 +165,7 @@ class SchedulerSrv(object):
                     scrapyd_url=job.scrapyd_url,
                     cancel_manually=True
                 )
+
             return True
         except Exception as err:
             abort(500, message=str(err))
