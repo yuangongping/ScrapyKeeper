@@ -70,7 +70,8 @@ class SchedulerSrv(object):
                             ROOT_PROJECT_NAME=project_name,
                             ROOT_PROJECT_NAME_ZH=project_name_zh,
                             SCHEDULER_ID=scheduler_id,
-                            ROUND_ID=round_id
+                            ROUND_ID=round_id,
+                            SCHEDULER_DUPEFILTER_KEY='{}:dupefilter'.format(project_name)
                             )
         settings = scrapySettings.dump()
         for spider in spiders:
