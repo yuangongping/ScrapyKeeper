@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 # Author:chenlincui
+# 获取ELK日志
 from flask_restful import Resource, reqparse
 from ScrapyKeeper.service.ElkLogSrv import ElkLogSrv
 
