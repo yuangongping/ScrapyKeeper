@@ -183,7 +183,6 @@ class SchedulerSrv(object):
                     "desc": "单次执行",
                     "config": args.get("config")
                 }
-                print("----------------------------------单次运行任务")
                 obj = Scheduler.save(dic=dic)
                 self.start_up_project(project_name=project.project_name,
                                       project_id=project.id,
