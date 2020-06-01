@@ -162,16 +162,16 @@ class SchedulerSrv(object):
 
     def add_scheduler(self, args: dict):
         try:
-            scheduler_form = demjson.decode(demjson.decode(args.get("config")).get("scheduler_form"))
-            run_type = scheduler_form.get("type")
-            project = Project.query.filter_by(project_name=args.get("project_name")).first()
+            config = demjson.decode(args.get("params"))
+            run_type = config.get("SCHEDULER").get("type")
+            project = Project.query.filter_by(project_name=config.get("PROJECT_NAME")).first()
             # 单次运行
             if run_type == 1:
                 dic = {
                     'project_id': project.id,
                     'run_type': "onetime",
                     "desc": "单次执行",
-                    "config": args.get("config")
+                    "config": args.get("params")
                 }
                 obj = Scheduler.save(dic=dic)
                 self.start_up_project(project_name=project.project_name,
@@ -181,10 +181,10 @@ class SchedulerSrv(object):
                                       project_name_zh=project.project_name_zh
                                       )
             else:
-                cron_month = self.format_corn(scheduler_form.get("scheduler").get("cron_month"))
-                cron_day_of_month = self.format_corn(scheduler_form.get("scheduler").get("cron_day_of_month"))
-                cron_hour = self.format_corn(scheduler_form.get("scheduler").get("cron_hour"))
-                cron_minutes = self.format_corn(scheduler_form.get("scheduler").get("cron_minutes"))
+                cron_month = self.format_corn(config.get("SCHEDULER").get("month"))
+                cron_day_of_month = self.format_corn(config.get("SCHEDULER").get("day"))
+                cron_hour = self.format_corn(config.get("SCHEDULER").get("hour"))
+                cron_minutes = self.format_corn(config.get("SCHEDULER").get("minutes"))
                 dic = {
                     'project_id': project.id,
                     'run_type': "periodic",
@@ -192,8 +192,8 @@ class SchedulerSrv(object):
                     'cron_day_of_month': cron_day_of_month,
                     'cron_hour': cron_hour,
                     'cron_minutes': cron_minutes,
-                    "desc": scheduler_form.get("scheduler").get("description"),
-                    "config": args.get("config")
+                    "desc": config.get("scheduler").get("description"),
+                    "config": args.get("params")
                 }
                 obj = Scheduler.save(dic=dic)
                 args = {

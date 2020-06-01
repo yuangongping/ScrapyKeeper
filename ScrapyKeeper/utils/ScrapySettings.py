@@ -61,8 +61,8 @@ class ScrapySettings():
     def set(self, key, val):
         if hasattr(self, key):
             setattr(self, key, val)
-        else:
-            raise KeyError('ScrapySettings Key Error: No key %s' % key)
+        # else:
+        #     raise KeyError('ScrapySettings Key Error: No key %s' % key)
 
     def load(self, txt: str = None, **kwargs):
         """  Load ScrapySettings from a json type string or a dict """
