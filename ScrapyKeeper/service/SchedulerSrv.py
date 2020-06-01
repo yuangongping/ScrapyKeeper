@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 import uuid
-
 from flask_restful import abort
 from ScrapyKeeper.agent.ScrapyAgent import ScrapyAgent
 from ScrapyKeeper.model.ServerMachine import ServerMachine
@@ -11,11 +10,8 @@ from ScrapyKeeper import ram_scheduler
 import demjson
 
 from ScrapyKeeper.service.DataStorageSrv import DataStorageSrv
-from ScrapyKeeper.utils.process_settings import get_settings
 from ScrapyKeeper.model.JobExecution import JobExecution
-import logging
-import datetime
-import time
+from ScrapyKeeper.utils.ScrapySettings import ScrapySettings
 
 
 class SchedulerSrv(object):
@@ -66,16 +62,20 @@ class SchedulerSrv(object):
         scheduler = Scheduler.query.filter_by(id=scheduler_id).first()
         scrapyd_job_id = []
 
-        round_id = uuid.uuid1().hex  # 周期调度的轮次id
+        # 周期调度的轮次id
+        round_id = uuid.uuid1().hex
+        """ 处理settings： 将前端的字符串对象转为字典, 并添加一些额外的参数 """
+        scrapySettings = ScrapySettings()
+        scrapySettings.load(scheduler.config,
+                            ROOT_PROJECT_NAME=project_name,
+                            ROOT_PROJECT_NAME_ZH=project_name_zh,
+                            SCHEDULER_ID=scheduler_id,
+                            ROUND_ID=round_id
+                            )
+        settings = scrapySettings.dump()
         for spider in spiders:
             if spider.type == "master":
-                _project_name = project_name + "_master"
-                settings = get_settings(scheduler.config,
-                                        _project_name,
-                                        scheduler_id,
-                                        round_id,
-                                        project_name,
-                                        project_name_zh)
+                settings["PROJECT_NAME"] = project_name + "_master"
                 master_job_id = self.master_agent.start_spider(
                     spider.project_name,
                     spider.name,
@@ -100,14 +100,8 @@ class SchedulerSrv(object):
                 }
                 JobExecution.save(dic=dic)
             else:
+                settings["PROJECT_NAME"] = project_name + "_slave"
                 for agent in self.slave_agents:
-                    _project_name = project_name + "_slave"
-                    settings = get_settings(scheduler.config,
-                                            _project_name,
-                                            scheduler_id,
-                                            round_id,
-                                            project_name,
-                                            project_name_zh)
                     if agent.server_url == spider.address:
                         slave_job_id = agent.start_spider(
                             spider.project_name,
@@ -146,8 +140,6 @@ class SchedulerSrv(object):
                         porject.project_name,
                         job.scrapyd_job_id
                     )
-                    # 由于取消爬虫不会关闭爬虫， 故需要手动更新数据库
-                    # job.end_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                     print("主爬虫： {} 任务已取消！".format(job.scrapyd_job_id))
                 else:
                     for agent in self.slave_agents:
@@ -156,8 +148,6 @@ class SchedulerSrv(object):
                                 porject.project_name,
                                 job.scrapyd_job_id
                             )
-                            # 由于取消爬虫不会关闭爬虫， 故需要手动更新数据库
-                            # job.end_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                             print("从爬虫： {} 任务已取消！".format(job.scrapyd_job_id))
                 # 更新每个任务的结束时间
                 data_storage.update_end_time(
@@ -165,7 +155,6 @@ class SchedulerSrv(object):
                     scrapyd_url=job.scrapyd_url,
                     cancel_manually=True
                 )
-
             return True
         except Exception as err:
             abort(500, message=str(err))

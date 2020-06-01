@@ -11,7 +11,7 @@ import demjson
 
 class ScrapySettings():
     PROJECT_NAME = ''                   # 工程名
-    ROOT_PROJECT_NAME = ''              # 项目英文名称
+    ROOT_PROJECT_NAME = ''              # 总的项目名
     ROOT_PROJECT_NAME_ZH = ''           # 项目中文名称
     SEED_LIST = ''                      # 项目请求种子列表
     SCHEDULER_ID = ''                   # 项目调度任务id
@@ -38,7 +38,7 @@ class ScrapySettings():
     REDIS_HOST = '10.5.9.87'            # redis地址
     REDIS_PORT = 6379                   # redis端口
     MYSQL_HOST = '10.5.9.110'           # mysql地址
-    MYSQL_DB = 'duocaiyunspider'        # mysql数据库名
+    MYSQL_DB = 'duocaiyunspider_dataresource'        # mysql数据库名
     MYSQL_TABLE = ''                    # mysql表名
     MYSQL_USERNAME = 'root'             # mysql用户名
     MYSQL_PASSWORD = 'root'             # mysql密码
@@ -77,12 +77,12 @@ class ScrapySettings():
         for key in kwargs:
             self.set(key, kwargs[key])
 
-    def dump(self):
+    def dump(self, _to_dict=True):
         """ dump ScrapySettings to a json string """
         d = {}
         for prop in dir(self):
             if prop.isupper():
                 d[prop] = getattr(self, prop)
+        if _to_dict:
+            return d
         return demjson.encode(d)
-
-
