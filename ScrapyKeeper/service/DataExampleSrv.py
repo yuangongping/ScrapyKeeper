@@ -31,6 +31,7 @@ class DataExampleSrv(object):
     def data_example(cls, args: dict):
         # TODO: 1增加多种数据库支持；2、获取数据库大小写敏感设置再去获取表名 3、给一个反序id
         try:
+            session = None
             scheduler = Scheduler.query.filter_by(project_id=args.get("project_id")).first()
             if scheduler is None:
                 return []

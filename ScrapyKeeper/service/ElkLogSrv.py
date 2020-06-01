@@ -147,16 +147,6 @@ class ElkLogSrv(object):
         connection = cls.es_connection()  # 连接数据库
 
         try:
-            # # 先根据条件查询一条数据, 方便获取要删除的日志在本地的路径, 用于接下来删除本地日志
-            # es_query = connection.search(index='_all', body=query_json, size=1,
-            #                              _source=["path"])
-            # 删除本地日志文件
-            # base_path = es_query['hits']['hits'][0]['path']  # 本地日志路径,
-            # /home/python/run_env/scrapyd/logs/knowledge_graph_china_standard/china_standard_slave/53a626740e2c11e9907a0cda411d4f43.log
-            # path = base_path.split('/')[:-2]  # logstah监听的本地日志路径
-            # if os.path.exists(path):  # 判断文件夹是否存在
-            #     os.removedirs(path)  # 删除文件夹
-
             # 同时从数据库中删除数据
             connection.delete_by_query(index='duocaiyun-*', body=query_json)
             return True
