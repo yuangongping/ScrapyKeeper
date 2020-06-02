@@ -177,12 +177,12 @@ class ProjectSrv(object):
         self.update_spider_status(projects)
 
         """通过ELK日志分析系统， 获取工程的日志错误信息"""
-        # data = []
-        # for project in projects:
-        #     proj = project.to_dict(base_time=True)
-        #     proj["error"] = 0
-        #     data.append(proj)
-        # return {"total": pagination.total, "data": data}
+        data = []
+        for project in projects:
+            proj = project.to_dict(base_time=True)
+            proj["error"] = 0
+            data.append(proj)
+        return {"total": pagination.total, "data": data}
 
         log_error_list = ElkLogSrv.log_count()
         data = []

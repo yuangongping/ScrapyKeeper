@@ -74,6 +74,7 @@ class SchedulerSrv(object):
                             SCHEDULER_DUPEFILTER_KEY='{}:dupefilter'.format(project_name)
                             )
         settings = scrapySettings.dump()
+
         for spider in spiders:
             if spider.type == "master":
                 settings["PROJECT_NAME"] = project_name + "_master"
@@ -163,7 +164,7 @@ class SchedulerSrv(object):
     def add_scheduler(self, args: dict):
         try:
             config = demjson.decode(args.get("params"))
-            run_type = config.get("SCHEDULER").get("type")
+            run_type = config.get("SCHEDULER_TYPE")
             project = Project.query.filter_by(project_name=config.get("PROJECT_NAME")).first()
             # 单次运行
             if run_type == 1:
@@ -181,10 +182,10 @@ class SchedulerSrv(object):
                                       project_name_zh=project.project_name_zh
                                       )
             else:
-                cron_month = self.format_corn(config.get("SCHEDULER").get("month"))
-                cron_day_of_month = self.format_corn(config.get("SCHEDULER").get("day"))
-                cron_hour = self.format_corn(config.get("SCHEDULER").get("hour"))
-                cron_minutes = self.format_corn(config.get("SCHEDULER").get("minutes"))
+                cron_month = self.format_corn(config.get("SCHEDULER_MOUNTH"))
+                cron_day_of_month = self.format_corn(config.get("SCHEDULER_DAY"))
+                cron_hour = self.format_corn(config.get("SCHEDULER_HOUR"))
+                cron_minutes = self.format_corn(config.get("SCHEDULER_MINUTE"))
                 dic = {
                     'project_id': project.id,
                     'run_type': "periodic",
